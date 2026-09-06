@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Télécharger FastDrop — bindedouworker-hub</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(18, 24, 38, 0.85);
+      --border: rgba(255, 255, 255, 0.08);
+      --cyan: #06b6d4;
+      --green: #10b981;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+    .hero { text-align: center; max-width: 680px; margin-bottom: 36px; }
+    .hero h1 { font-size: 2.8rem; font-weight: 800; background: linear-gradient(135deg, #fff, var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; }
+    .hero p { color: var(--text-dim); font-size: 1.15rem; }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; width: 100%; max-width: 820px; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 32px; display: flex; flex-direction: column; align-items: center; text-align: center; backdrop-filter: blur(16px); position: relative; overflow: hidden; }
+    .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--cyan), var(--green)); }
+    .os-icon { font-size: 48px; margin-bottom: 16px; }
+    .card h2 { font-size: 1.5rem; margin-bottom: 8px; }
+    .card .desc { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 24px; }
+    .btn-download { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 14px 20px; border-radius: 12px; font-weight: 700; font-size: 1rem; text-decoration: none; color: #0b0f19; background: linear-gradient(135deg, var(--cyan), var(--green)); transition: transform 0.2s, box-shadow 0.2s; }
+    .btn-download:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(6, 182, 212, 0.35); }
+    .qr-box { margin-top: 20px; padding: 12px; background: #fff; border-radius: 12px; display: flex; flex-direction: column; align-items: center; }
+    .qr-box img { width: 140px; height: 140px; }
+    .qr-label { color: #0b0f19; font-size: 0.75rem; font-weight: 700; margin-top: 6px; }
+    .meta { font-size: 0.8rem; color: var(--text-dim); margin-top: 10px; }
+    footer { margin-top: 40px; font-size: 0.85rem; color: var(--text-dim); }
+    footer a { color: var(--cyan); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <h1>⚡ FastDrop</h1>
+    <p>Transfert direct et instantané de fichiers entre smartphone Android et PC Windows en réseau local sans cloud.</p>
+  </header>
+  <main class="cards-grid">
+    <div class="card">
+      <div class="os-icon">🪟</div>
+      <h2>Windows Desktop</h2>
+      <p class="desc">Pour Windows 10 et 11 (64-bit)<br>Installation automatique avec règles de pare-feu</p>
+      <a href="https://github.com/bindedouworker-hub/LanceFer/releases/latest/download/FastDrop-Setup-0.1.0.exe" class="btn-download">
+        Télécharger .exe (Windows)
+      </a>
+      <span class="meta">v0.1.0-alpha • 45.2 Mo • 64-bit</span>
+    </div>
+    <div class="card">
+      <div class="os-icon">🤖</div>
+      <h2>Android Mobile</h2>
+      <p class="desc">Compatible Android 8.0 à Android 15<br>Installation directe par fichier APK</p>
+      <a href="https://github.com/bindedouworker-hub/LanceFer/releases/latest/download/FastDrop.apk" class="btn-download">
+        Télécharger .apk (Android)
+      </a>
+      <div class="qr-box">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://github.com/bindedouworker-hub/LanceFer/releases/latest/download/FastDrop.apk" alt="QR Code Téléchargement APK">
+        <span class="qr-label">📱 Scanner pour installer sur Mobile</span>
+      </div>
+      <span class="meta">v0.1.0-alpha • 12.8 Mo • SAF Zero-Permission</span>
+    </div>
+  </main>
+  <footer>
+    Propulsé par <a href="https://github.com/bindedouworker-hub/LanceFer" target="_blank">LanceFer Software Factory — FastDrop v0.1.0</a>
+  </footer>
+</body>
+</html>
