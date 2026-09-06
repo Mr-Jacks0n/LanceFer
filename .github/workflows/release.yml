@@ -1,11 +1,14 @@
-name: FastDrop Automated Build & Release
+﻿name: FastDrop Automated Build & Release
+
 on:
   push:
     tags:
       - 'v*'
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   build-windows:
     name: Build Windows Executable (.exe)
@@ -15,12 +18,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm ci
+      - run: npm install
       - run: npx electron-builder --win --x64
       - uses: actions/upload-artifact@v4
         with:
           name: windows-installer
           path: dist/*.exe
+
   build-android:
     name: Build Android Application (.apk)
     runs-on: ubuntu-latest
@@ -31,14 +35,16 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
       - uses: android-actions/setup-android@v3
-      - run: |
+      - uses: gradle/actions/setup-gradle@v3
+      - name: Build Android Release APK
+        run: |
           cd android
-          chmod +x gradlew
-          ./gradlew assembleRelease
+          gradle assembleRelease
       - uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: android/app/build/outputs/apk/release/*.apk
+          path: android/app/build/outputs/apk/**/*.apk
+
   publish-release:
     name: Publish Public GitHub Release
     needs: [build-windows, build-android]

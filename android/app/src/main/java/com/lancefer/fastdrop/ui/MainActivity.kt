@@ -1,8 +1,15 @@
-package com.lancefer.fastdrop.ui
+﻿package com.lancefer.fastdrop.ui
 
-/**
- * Interface principale FastDrop Mobile (Jetpack Compose / Android Native)
- */
-class MainActivity {
-    // Écran d'appairage QR Code / PIN et sélection de fichiers SAF (Storage Access Framework)
+import android.app.Activity
+import android.os.Bundle
+import android.widget.TextView
+
+class MainActivity : Activity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val tv = TextView(this)
+        tv.text = "FastDrop Mobile Ready"
+        tv.textSize = 24f
+        setContentView(tv)
+    }
 }

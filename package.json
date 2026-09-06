@@ -1,25 +1,49 @@
-{
-  "name": "fastdrop-transfer-core",
+﻿{
+  "name": "fastdrop",
   "version": "0.1.0",
-  "description": "FastDrop Transfer Core — Moteur de transfert haute performance pour FastDrop",
+  "description": "FastDrop — Transfert direct ultra-rapide Android <-> Windows",
+  "main": "src/desktop/main.js",
   "type": "module",
-  "main": "src/index.js",
   "scripts": {
     "test": "node --test test/**/*.test.js",
-    "benchmark": "node scripts/benchmark.js"
+    "benchmark": "node scripts/benchmark.js",
+    "desktop": "electron src/desktop/main.js",
+    "build:win": "electron-builder --win --x64"
+  },
+  "build": {
+    "appId": "com.lancefer.fastdrop",
+    "productName": "FastDrop",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false
+    }
   },
   "keywords": [
     "fastdrop",
     "lancefer",
-    "transfer",
-    "streaming",
-    "chunks",
-    "resume",
-    "sha256"
+    "file-transfer"
   ],
   "author": "LanceFer Software Factory",
   "license": "MIT",
   "engines": {
     "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
   }
 }
