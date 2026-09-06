@@ -1,0 +1,25 @@
+{
+  "name": "fastdrop-transfer-core",
+  "version": "0.1.0",
+  "description": "FastDrop Transfer Core — Moteur de transfert haute performance pour FastDrop",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "benchmark": "node scripts/benchmark.js"
+  },
+  "keywords": [
+    "fastdrop",
+    "lancefer",
+    "transfer",
+    "streaming",
+    "chunks",
+    "resume",
+    "sha256"
+  ],
+  "author": "LanceFer Software Factory",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
