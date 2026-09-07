@@ -27,10 +27,9 @@ jobs:
         run: npm install
 
       - name: Build Windows installer (.exe + portable)
-        run: npx electron-builder --win --x64 -c.publish=never
+        run: npx electron-builder --win --x64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # electron-builder v24+ exige GH_TOKEN même avec -c.publish=never
 
       - name: Upload Windows Installer artifact
         uses: actions/upload-artifact@v4
