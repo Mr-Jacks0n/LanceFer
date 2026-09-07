@@ -69,7 +69,9 @@ jobs:
           gradle assembleRelease \
             --no-daemon \
             --stacktrace \
-            -Dorg.gradle.jvmargs="-Xmx2g"
+            -Dorg.gradle.jvmargs="-Xmx2g" \
+            -Pandroid.useAndroidX=true \
+            -Pandroid.enableJetifier=true
 
       - name: Upload Android APK artifact
         uses: actions/upload-artifact@v4
