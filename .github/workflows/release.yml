@@ -19,7 +19,8 @@ jobs:
         with:
           node-version: 20
       - run: npm install
-      - run: npx electron-builder --win --x64
+      - name: Build Windows Executable
+        run: npx electron-builder --win --x64 -c.publish=never
       - uses: actions/upload-artifact@v4
         with:
           name: windows-installer
@@ -36,10 +37,12 @@ jobs:
           java-version: '17'
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.5'
       - name: Build Android Release APK
         run: |
           cd android
-          gradle assembleRelease
+          gradle assembleRelease --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: android-apk
