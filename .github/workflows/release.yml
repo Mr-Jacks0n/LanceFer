@@ -21,13 +21,16 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'         # Node.js 24 — LTS actuel 2025/2026
+          node-version: '24'
 
       - name: Install dependencies
         run: npm install
 
       - name: Build Windows installer (.exe + portable)
         run: npx electron-builder --win --x64 -c.publish=never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # electron-builder v24+ exige GH_TOKEN même avec -c.publish=never
 
       - name: Upload Windows Installer artifact
         uses: actions/upload-artifact@v4
@@ -46,7 +49,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5       # ← v5 (v4 déprécié)
+        uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -54,21 +57,20 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Configure Gradle wrapper permissions
-        run: chmod +x android/gradlew
-
-      - name: Download Gradle distributions (no cache)
-        working-directory: android
-        run: ./gradlew --no-daemon --version
+      # gradle/actions/setup-gradle installe Gradle directement — pas besoin du gradlew wrapper JAR
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+          cache-disabled: true   # évite les erreurs 400 du cache service
 
       - name: Build Android Release APK
         working-directory: android
         run: |
-          ./gradlew assembleRelease \
+          gradle assembleRelease \
             --no-daemon \
             --stacktrace \
-            -Dorg.gradle.jvmargs="-Xmx2g" \
-            -Pandroid.useAndroidX=true
+            -Dorg.gradle.jvmargs="-Xmx2g"
 
       - name: Upload Android APK artifact
         uses: actions/upload-artifact@v4

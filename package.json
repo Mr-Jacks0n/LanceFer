@@ -1,13 +1,13 @@
-﻿{
+{
   "name": "fastdrop",
   "version": "0.1.0",
   "description": "FastDrop — Transfert direct ultra-rapide Android <-> Windows",
-  "main": "src/desktop/main.js",
+  "main": "src/desktop/main.cjs",
   "type": "module",
   "scripts": {
     "test": "node --test test/**/*.test.js",
     "benchmark": "node scripts/benchmark.js",
-    "desktop": "electron src/desktop/main.js",
+    "desktop": "electron src/desktop/main.cjs",
     "build:win": "electron-builder --win --x64"
   },
   "build": {
