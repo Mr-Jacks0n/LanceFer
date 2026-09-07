@@ -1,4 +1,4 @@
-﻿name: FastDrop Automated Build & Release
+name: FastDrop Automated Build & Release
 
 on:
   push:
@@ -10,61 +10,122 @@ permissions:
   contents: write
 
 jobs:
+  # ─────────────────────────────────────────────
+  # JOB 1 — Build Windows Electron Desktop (.exe)
+  # ─────────────────────────────────────────────
   build-windows:
     name: Build Windows Executable (.exe)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm install
-      - name: Build Windows Executable
+          node-version: '24'         # Node.js 24 — LTS actuel 2025/2026
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Windows installer (.exe + portable)
         run: npx electron-builder --win --x64 -c.publish=never
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload Windows Installer artifact
+        uses: actions/upload-artifact@v4
         with:
           name: windows-installer
           path: dist/*.exe
+          if-no-files-found: warn
 
+  # ─────────────────────────────────────────────
+  # JOB 2 — Build Android APK (Release non signé)
+  # ─────────────────────────────────────────────
   build-android:
     name: Build Android Application (.apk)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5       # ← v5 (v4 déprécié)
         with:
           distribution: 'zulu'
           java-version: '17'
-      - uses: android-actions/setup-android@v3
-      - uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.5'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Configure Gradle wrapper permissions
+        run: chmod +x android/gradlew
+
+      - name: Download Gradle distributions (no cache)
+        working-directory: android
+        run: ./gradlew --no-daemon --version
+
       - name: Build Android Release APK
+        working-directory: android
         run: |
-          cd android
-          gradle assembleRelease --stacktrace
-      - uses: actions/upload-artifact@v4
+          ./gradlew assembleRelease \
+            --no-daemon \
+            --stacktrace \
+            -Dorg.gradle.jvmargs="-Xmx2g" \
+            -Pandroid.useAndroidX=true
+
+      - name: Upload Android APK artifact
+        uses: actions/upload-artifact@v4
         with:
           name: android-apk
           path: android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: warn
 
+  # ─────────────────────────────────────────────
+  # JOB 3 — Publier la GitHub Release officielle
+  # ─────────────────────────────────────────────
   publish-release:
     name: Publish Public GitHub Release
     needs: [build-windows, build-android]
     runs-on: ubuntu-latest
+    if: always()    # Publier même si un job de build échoue partiellement
+
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download Windows Installer
+        uses: actions/download-artifact@v4
         with:
           name: windows-installer
           path: release-files
-      - uses: actions/download-artifact@v4
+        continue-on-error: true
+
+      - name: Download Android APK
+        uses: actions/download-artifact@v4
         with:
           name: android-apk
           path: release-files
-      - uses: softprops/action-gh-release@v2
+        continue-on-error: true
+
+      - name: List release files
+        run: ls -la release-files/ || echo "Aucun fichier à publier"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          files: release-files/*
+          files: release-files/**
           tag_name: ${{ github.ref_name }}
-          title: FastDrop ${{ github.ref_name }} — Release Officielle
+          name: FastDrop ${{ github.ref_name }} — Release Officielle
+          body: |
+            ## ⚡ FastDrop ${{ github.ref_name }}
+
+            Transfert direct ultra-rapide de fichiers entre Android et Windows — réseau local, sans cloud.
+
+            ### 📥 Téléchargements
+            | Plateforme | Fichier | Description |
+            |---|---|---|
+            | 🪟 Windows | `FastDrop-Setup-*.exe` | Installateur Windows 10/11 (64-bit) |
+            | 🤖 Android | `FastDrop*.apk` | APK pour Android 8+ (SAF, Zero-Permission) |
+
+            ### 📱 QR Code Android
+            Scannez pour installer directement sur mobile :
+            ![QR Code](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/bindedouworker-hub/LanceFer/releases/latest/download/FastDrop.apk)
+
+            ---
+            *Construit automatiquement par LanceFer Software Factory 🏭*
           draft: false
           prerelease: false
