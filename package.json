@@ -1,7 +1,7 @@
 {
-  "name": "fastdrop",
+  "name": "lancedrop",
   "version": "0.1.0",
-  "description": "FastDrop — Transfert direct ultra-rapide Android <-> Windows",
+  "description": "LanceDrop — Transfert direct ultra-rapide Android <-> Windows",
   "main": "src/desktop/main.cjs",
   "type": "module",
   "scripts": {
@@ -11,8 +11,8 @@
     "build:win": "electron-builder --win --x64"
   },
   "build": {
-    "appId": "com.lancefer.fastdrop",
-    "productName": "FastDrop",
+    "appId": "com.lancefer.lancedrop",
+    "productName": "LanceDrop",
     "directories": {
       "output": "dist"
     },

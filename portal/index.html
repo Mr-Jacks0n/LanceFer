@@ -3,69 +3,95 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Télécharger FastDrop — bindedouworker-hub</title>
+  <title>Télécharger LanceDrop Desktop & Mobile — Programme LanceFer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0b0f19;
-      --card-bg: rgba(18, 24, 38, 0.85);
-      --border: rgba(255, 255, 255, 0.08);
-      --cyan: #06b6d4;
-      --green: #10b981;
-      --text: #f8fafc;
-      --text-dim: #94a3b8;
+      --bg: #F0F4F9;
+      --card-bg: #FFFFFF;
+      --border: #E2E8F0;
+      --primary: #1A73E8;
+      --primary-hover: #1557B0;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --green: #16A34A;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
-    .hero { text-align: center; max-width: 680px; margin-bottom: 36px; }
-    .hero h1 { font-size: 2.8rem; font-weight: 800; background: linear-gradient(135deg, #fff, var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; }
-    .hero p { color: var(--text-dim); font-size: 1.15rem; }
-    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; width: 100%; max-width: 820px; }
-    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 32px; display: flex; flex-direction: column; align-items: center; text-align: center; backdrop-filter: blur(16px); position: relative; overflow: hidden; }
-    .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--cyan), var(--green)); }
-    .os-icon { font-size: 48px; margin-bottom: 16px; }
-    .card h2 { font-size: 1.5rem; margin-bottom: 8px; }
-    .card .desc { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 24px; }
-    .btn-download { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 14px 20px; border-radius: 12px; font-weight: 700; font-size: 1rem; text-decoration: none; color: #0b0f19; background: linear-gradient(135deg, var(--cyan), var(--green)); transition: transform 0.2s, box-shadow 0.2s; }
-    .btn-download:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(6, 182, 212, 0.35); }
-    .qr-box { margin-top: 20px; padding: 12px; background: #fff; border-radius: 12px; display: flex; flex-direction: column; align-items: center; }
-    .qr-box img { width: 140px; height: 140px; }
-    .qr-label { color: #0b0f19; font-size: 0.75rem; font-weight: 700; margin-top: 6px; }
-    .meta { font-size: 0.8rem; color: var(--text-dim); margin-top: 10px; }
-    footer { margin-top: 40px; font-size: 0.85rem; color: var(--text-dim); }
-    footer a { color: var(--cyan); text-decoration: none; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; }
+    
+    .brand-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+    .brand-icon { width: 52px; height: 52px; }
+    .hero { text-align: center; max-width: 680px; margin-bottom: 40px; }
+    .hero h1 { font-size: 2.7rem; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+    .hero p { color: var(--text-muted); font-size: 1.15rem; margin-top: 10px; line-height: 1.5; }
+    
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; width: 100%; max-width: 860px; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 36px 32px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.04); position: relative; transition: transform 0.2s, box-shadow 0.2s; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
+    
+    .os-badge { width: 64px; height: 64px; border-radius: 16px; background: #EFF6FF; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 20px; }
+    .card h2 { font-size: 1.45rem; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+    .card .desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px; line-height: 1.45; }
+    
+    .btn-download { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px 20px; border-radius: 12px; font-weight: 700; font-size: 1rem; text-decoration: none; color: #FFFFFF; background: var(--primary); box-shadow: 0 4px 12px rgba(26, 115, 232, 0.25); transition: background 0.15s, transform 0.1s; }
+    .btn-download:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    
+    .qr-box { margin-top: 22px; padding: 12px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; display: flex; flex-direction: column; align-items: center; }
+    .qr-box img { width: 140px; height: 140px; border-radius: 8px; }
+    .qr-label { color: var(--text-muted); font-size: 0.8rem; font-weight: 600; margin-top: 8px; }
+    .meta { font-size: 0.82rem; color: var(--text-muted); margin-top: 12px; font-weight: 500; }
+    
+    footer { margin-top: 48px; font-size: 0.88rem; color: var(--text-muted); text-align: center; }
+    footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
   </style>
 </head>
 <body>
+  <div class="brand-header">
+    <svg class="brand-icon" viewBox="0 0 40 40" fill="none">
+      <rect width="40" height="40" rx="12" fill="#1A73E8"/>
+      <path d="M28 24C29.6569 24 31 22.6569 31 21C31 19.4674 29.8519 18.2029 28.3698 18.0248C28.1367 14.6293 25.3211 12 21.875 12C18.9189 12 16.4259 13.9372 15.6025 16.6347C15.1118 16.3986 14.5636 16.25 13.9844 16.25C11.7839 16.25 10 18.0339 10 20.2344C10 22.3168 11.6033 24.0249 13.6396 24.2084" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M20.5 28V19M20.5 19L17.5 22M20.5 19L23.5 22" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1 style="font-size: 2.2rem; font-weight: 800;">LanceDrop</h1>
+  </div>
+
   <header class="hero">
-    <h1>⚡ FastDrop</h1>
-    <p>Transfert direct et instantané de fichiers entre smartphone Android et PC Windows en réseau local sans cloud.</p>
+    <h1>Transfert Direct & Instantané</h1>
+    <p>Partagez vos photos, vidéos, documents et archives entre votre smartphone Android et votre PC Windows en réseau local haute vitesse, sans cloud.</p>
   </header>
+
   <main class="cards-grid">
+    <!-- Carte Windows -->
     <div class="card">
-      <div class="os-icon">🪟</div>
-      <h2>Windows Desktop</h2>
-      <p class="desc">Pour Windows 10 et 11 (64-bit)<br>Installation automatique avec règles de pare-feu</p>
-      <a href="https://github.com/bindedouworker-hub/LanceFer/releases/latest/download/FastDrop-Setup-0.1.0.exe" class="btn-download">
+      <div class="os-badge">🪟</div>
+      <h2>LanceDrop Desktop</h2>
+      <p class="desc">Pour Windows 10 et 11 (64-bit)<br>Bibliothèque PC, glisser-déposer et synchronisation automatique</p>
+      <a href="https://github.com/bindedouworker-hub/LanceFer/releases/download/v0.1.0/FastDrop.Setup.0.1.0.exe" class="btn-download">
         Télécharger .exe (Windows)
       </a>
-      <span class="meta">v0.1.0-alpha • 45.2 Mo • 64-bit</span>
+      <span class="meta">v0.1.0 • 78.2 Mo • 64-bit Officiel</span>
     </div>
+
+    <!-- Carte Android -->
     <div class="card">
-      <div class="os-icon">🤖</div>
-      <h2>Android Mobile</h2>
-      <p class="desc">Compatible Android 8.0 à Android 15<br>Installation directe par fichier APK</p>
-      <a href="https://github.com/bindedouworker-hub/LanceFer/releases/latest/download/FastDrop.apk" class="btn-download">
+      <div class="os-badge">🤖</div>
+      <h2>LanceDrop Mobile</h2>
+      <p class="desc">Compatible Android 8.0 à Android 15<br>Installation directe APK (Storage Access Framework)</p>
+      <a href="https://github.com/bindedouworker-hub/LanceFer/releases/download/v0.1.0/app-release.apk" class="btn-download">
         Télécharger .apk (Android)
       </a>
       <div class="qr-box">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://github.com/bindedouworker-hub/LanceFer/releases/latest/download/FastDrop.apk" alt="QR Code Téléchargement APK">
-        <span class="qr-label">📱 Scanner pour installer sur Mobile</span>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://github.com/bindedouworker-hub/LanceFer/releases/download/v0.1.0/app-release.apk" alt="QR Code Téléchargement LanceDrop APK">
+        <span class="qr-label">📱 Scanner pour installer sur Android</span>
       </div>
-      <span class="meta">v0.1.0-alpha • 12.8 Mo • SAF Zero-Permission</span>
+      <span class="meta">v0.1.0 • 2.5 Mo • Zero-Permission</span>
     </div>
   </main>
+
   <footer>
-    Propulsé par <a href="https://github.com/bindedouworker-hub/LanceFer" target="_blank">LanceFer Software Factory — FastDrop v0.1.0</a>
+    Propulsé par <a href="https://github.com/bindedouworker-hub/LanceFer" target="_blank">LanceFer Software Factory — LanceDrop v0.1.0</a>
   </footer>
 </body>
 </html>
