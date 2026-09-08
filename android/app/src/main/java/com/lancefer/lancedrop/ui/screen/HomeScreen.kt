@@ -26,6 +26,7 @@ fun HomeScreen(
     onNavigateToTransfers: () -> Unit,
     onNavigateToStorage: () -> Unit,
     onNavigateToReceiveMode: () -> Unit,
+    onNavigateToClipboard: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
     Scaffold(
@@ -159,20 +160,39 @@ fun HomeScreen(
             }
 
             // ─────────────────────────────────────────────────────────────
-            // 2. BOUTON RECEVOIR RAPIDE (MODE RÉCEPTION QR)
+            // 2. ACTIONS RAPIDES : MODE RÉCEPTION & PRESSE-PAPIER PARTAGÉ
             // ─────────────────────────────────────────────────────────────
             item {
-                Button(
-                    onClick = onNavigateToReceiveMode,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LanceDropBlue)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(Icons.Default.QrCodeScanner, contentDescription = null, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Ouvrir le Mode Réception QR", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Button(
+                        onClick = onNavigateToReceiveMode,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = LanceDropBlue)
+                    ) {
+                        Icon(Icons.Default.QrCodeScanner, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Recevoir", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
+
+                    OutlinedButton(
+                        onClick = onNavigateToClipboard,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = LanceDropBlue),
+                        border = androidx.compose.foundation.BorderStroke(1.5.dp, LanceDropBlue)
+                    ) {
+                        Icon(Icons.Default.ContentPaste, contentDescription = null, tint = LanceDropBlue, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Presse-papier", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
                 }
             }
 

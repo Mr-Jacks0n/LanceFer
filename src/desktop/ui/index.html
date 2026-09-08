@@ -63,6 +63,15 @@
           <span>Appareils connectés</span>
         </button>
 
+        <button class="nav-item" id="navClipboard" data-view="clipboard">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+            <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" />
+          </svg>
+          <span>Presse-papier partagé</span>
+          <span class="nav-badge-pill" id="navClipboardBadge">1</span>
+        </button>
+
         <button class="nav-item" id="navSettings" data-view="settings">
           <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
@@ -88,6 +97,8 @@
     <!-- COLONNE 2 : BIBLIOTHÈQUE PC (Contenu Central)           -->
     <!-- ═══════════════════════════════════════════════════════ -->
     <main class="main-content">
+      <!-- VUE 1 : BIBLIOTHÈQUE DE FICHIERS PC -->
+      <div id="libraryView" class="view-panel active-panel">
       <!-- En-tête de la Bibliothèque -->
       <header class="content-header">
         <div class="header-titles">
@@ -451,6 +462,107 @@
           </div>
         </div>
       </div>
+      </div>
+
+      <!-- VUE 2 : PRESSE-PAPIER PARTAGÉ & TRANSFERT DE TEXTE -->
+      <div id="clipboardView" class="view-panel" style="display: none;">
+        <header class="content-header">
+          <div class="header-titles">
+            <h1>Presse-papier partagé</h1>
+            <p class="stats-text" id="clipboardStatsText">Synchronisation instantanée avec Samsung Galaxy A54</p>
+          </div>
+
+          <div class="header-actions">
+            <button class="btn-primary" id="btnSyncClipboardNow">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+              </svg>
+              <span>Synchroniser</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="clipboard-container">
+          <!-- Carte 1 : Envoi de texte vers le téléphone -->
+          <div class="clipboard-card send-card">
+            <div class="clipboard-card-header">
+              <div class="card-title-group">
+                <div class="icon-circle blue">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+                </div>
+                <div>
+                  <h3>Envoyer du texte vers le téléphone</h3>
+                  <span class="sub-text">Cible : Samsung Galaxy A54 (Connecté)</span>
+                </div>
+              </div>
+              <button class="btn-paste-shortcut" id="btnPasteFromLocal">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" /></svg>
+                <span>Coller du presse-papier PC</span>
+              </button>
+            </div>
+
+            <textarea id="clipboardTextInput" class="clipboard-input-field" placeholder="Collez ou tapez ici un texte, une URL, un mot de passe ou une note à afficher sur le smartphone..."></textarea>
+
+            <div class="clipboard-card-footer">
+              <span class="char-count" id="charCountLabel">0 caractère</span>
+              <button class="btn-primary" id="btnSendClipboard">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+                <span>Envoyer au téléphone</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Carte 2 : Textes reçus du téléphone -->
+          <div class="clipboard-card received-card">
+            <div class="clipboard-card-header">
+              <div class="card-title-group">
+                <div class="icon-circle green">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                </div>
+                <div>
+                  <h3>Textes reçus du téléphone</h3>
+                  <span class="sub-text">Historique des données partagées en temps réel</span>
+                </div>
+              </div>
+              <button class="btn-clear-history" id="btnClearClipboardHistory">Effacer</button>
+            </div>
+
+            <div class="snippets-container" id="snippetsContainer">
+              <!-- Item 1 Récent -->
+              <div class="snippet-item">
+                <div class="snippet-header">
+                  <div class="snippet-source">
+                    <span class="badge-device">Samsung Galaxy A54</span>
+                    <span class="snippet-time">Il y a 2 min</span>
+                  </div>
+                  <button class="btn-copy-snippet" data-copy="https://github.com/bindedouworker-hub/LanceFer">
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" /></svg>
+                    <span>Copier</span>
+                  </button>
+                </div>
+                <div class="snippet-content">https://github.com/bindedouworker-hub/LanceFer</div>
+              </div>
+
+              <!-- Item 2 -->
+              <div class="snippet-item">
+                <div class="snippet-header">
+                  <div class="snippet-source">
+                    <span class="badge-device">Samsung Galaxy A54</span>
+                    <span class="snippet-time">Il y a 28 min</span>
+                  </div>
+                  <button class="btn-copy-snippet" data-copy="Code de sécurité LanceDrop : 842 190">
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" /></svg>
+                    <span>Copier</span>
+                  </button>
+                </div>
+                <div class="snippet-content">Code de sécurité LanceDrop : 842 190</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- ═══════════════════════════════════════════════════════ -->
@@ -619,6 +731,32 @@
               </div>
               <span class="item-wait-status">En attente...</span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CARTE 2.5 : Presse-Papier Partagé Rapide -->
+      <section class="panel-card clipboard-quick-card">
+        <div class="panel-header">
+          <div class="panel-title-with-badge">
+            <svg viewBox="0 0 20 20" fill="#1A73E8">
+              <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+              <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" />
+            </svg>
+            <h3>Presse-papier partagé</h3>
+          </div>
+          <button class="btn-quick-nav-clip" id="btnQuickOpenClipboard">Gérer</button>
+        </div>
+        <div class="clipboard-quick-body">
+          <div class="clipboard-quick-text" id="quickClipboardTextPreview">
+            https://github.com/bindedouworker-hub/LanceFer
+          </div>
+          <div class="clipboard-quick-footer">
+            <span class="clipboard-quick-meta">Reçu de Galaxy A54</span>
+            <button class="btn-copy-pill" id="btnQuickCopyPill">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" /></svg>
+              <span id="quickCopyPillText">Copier</span>
+            </button>
           </div>
         </div>
       </section>

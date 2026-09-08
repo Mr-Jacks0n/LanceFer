@@ -285,13 +285,218 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // 7. Navigation de la Sidebar
+  // 7. Navigation de la Sidebar & Vues Principales
   // ─────────────────────────────────────────────────────────────
   const navItems = document.querySelectorAll('.sidebar-menu .nav-item');
+  const libraryView = document.getElementById('libraryView');
+  const clipboardView = document.getElementById('clipboardView');
+  const navClipboardBadge = document.getElementById('navClipboardBadge');
+
+  function switchView(viewName) {
+    navItems.forEach(i => {
+      if (i.getAttribute('data-view') === viewName) {
+        i.classList.add('active');
+      } else {
+        i.classList.remove('active');
+      }
+    });
+
+    if (viewName === 'clipboard') {
+      if (libraryView) libraryView.style.display = 'none';
+      if (clipboardView) clipboardView.style.display = 'block';
+      if (navClipboardBadge) navClipboardBadge.style.display = 'none';
+    } else {
+      if (libraryView) libraryView.style.display = 'block';
+      if (clipboardView) clipboardView.style.display = 'none';
+    }
+  }
+
   navItems.forEach(item => {
     item.addEventListener('click', () => {
-      navItems.forEach(i => i.classList.remove('active'));
-      item.classList.add('active');
+      const view = item.getAttribute('data-view');
+      switchView(view);
     });
   });
+
+  // ─────────────────────────────────────────────────────────────
+  // 8. Logique du Presse-papier Partagé (Clipboard Sync)
+  // ─────────────────────────────────────────────────────────────
+  const clipboardTextInput = document.getElementById('clipboardTextInput');
+  const charCountLabel = document.getElementById('charCountLabel');
+  const btnPasteFromLocal = document.getElementById('btnPasteFromLocal');
+  const btnSendClipboard = document.getElementById('btnSendClipboard');
+  const btnSyncClipboardNow = document.getElementById('btnSyncClipboardNow');
+  const btnClearClipboardHistory = document.getElementById('btnClearClipboardHistory');
+  const snippetsContainer = document.getElementById('snippetsContainer');
+  const quickClipboardTextPreview = document.getElementById('quickClipboardTextPreview');
+  const btnQuickCopyPill = document.getElementById('btnQuickCopyPill');
+  const quickCopyPillText = document.getElementById('quickCopyPillText');
+  const btnQuickOpenClipboard = document.getElementById('btnQuickOpenClipboard');
+
+  // Compteur de caractères
+  if (clipboardTextInput && charCountLabel) {
+    clipboardTextInput.addEventListener('input', () => {
+      const len = clipboardTextInput.value.length;
+      charCountLabel.textContent = `${len} caractère${len > 1 ? 's' : ''}`;
+    });
+  }
+
+  // Coller depuis le presse-papier PC
+  async function pasteLocalClipboard() {
+    try {
+      let text = '';
+      if (window.lancedrop && window.lancedrop.readClipboard) {
+        text = await window.lancedrop.readClipboard();
+      } else if (navigator.clipboard) {
+        text = await navigator.clipboard.readText();
+      }
+      if (text && clipboardTextInput) {
+        clipboardTextInput.value = text;
+        const len = text.length;
+        if (charCountLabel) charCountLabel.textContent = `${len} caractère${len > 1 ? 's' : ''}`;
+      }
+    } catch (err) {
+      console.warn('Erreur lecture presse-papier:', err);
+    }
+  }
+
+  if (btnPasteFromLocal) btnPasteFromLocal.addEventListener('click', pasteLocalClipboard);
+  if (btnSyncClipboardNow) btnSyncClipboardNow.addEventListener('click', pasteLocalClipboard);
+
+  // Envoyer le texte au smartphone
+  if (btnSendClipboard && clipboardTextInput) {
+    btnSendClipboard.addEventListener('click', async () => {
+      const text = clipboardTextInput.value.trim();
+      if (!text) {
+        alert('Veuillez saisir ou coller un texte avant d\'envoyer.');
+        return;
+      }
+
+      if (window.lancedrop && window.lancedrop.sendClipboardText) {
+        await window.lancedrop.sendClipboardText(text);
+      }
+
+      // Ajout dans les récents
+      addSnippetItem(text, 'Envoyé au Samsung Galaxy A54', 'À l\'instant');
+
+      // Mettre à jour le widget latéral rapide
+      if (quickClipboardTextPreview) quickClipboardTextPreview.textContent = text;
+
+      // Feedback visuel sur le bouton
+      const originalText = btnSendClipboard.innerHTML;
+      btnSendClipboard.innerHTML = `<span>✔ Envoyé avec succès !</span>`;
+      btnSendClipboard.style.backgroundColor = '#16A34A';
+      setTimeout(() => {
+        btnSendClipboard.innerHTML = originalText;
+        btnSendClipboard.style.backgroundColor = '';
+        clipboardTextInput.value = '';
+        if (charCountLabel) charCountLabel.textContent = '0 caractère';
+      }, 1600);
+    });
+  }
+
+  // Copier un snippet
+  async function copyTextToClipboard(text, btnElement, labelElement) {
+    try {
+      if (window.lancedrop && window.lancedrop.writeClipboard) {
+        await window.lancedrop.writeClipboard(text);
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+      }
+
+      if (btnElement) {
+        const oldHtml = btnElement.innerHTML;
+        btnElement.innerHTML = `<span>✔ Copié !</span>`;
+        setTimeout(() => {
+          btnElement.innerHTML = oldHtml;
+        }, 1500);
+      } else if (labelElement) {
+        const old = labelElement.textContent;
+        labelElement.textContent = '✔ Copié !';
+        setTimeout(() => {
+          labelElement.textContent = old;
+        }, 1500);
+      }
+    } catch (err) {
+      console.warn('Erreur écriture presse-papier:', err);
+    }
+  }
+
+  // Attacher les boutons de copie existants
+  function attachCopyHandlers() {
+    document.querySelectorAll('.btn-copy-snippet').forEach(btn => {
+      btn.onclick = () => {
+        const text = btn.getAttribute('data-copy');
+        copyTextToClipboard(text, btn);
+      };
+    });
+  }
+  attachCopyHandlers();
+
+  // Bouton de copie rapide dans le volet droit
+  if (btnQuickCopyPill && quickClipboardTextPreview) {
+    btnQuickCopyPill.addEventListener('click', () => {
+      const text = quickClipboardTextPreview.textContent.trim();
+      copyTextToClipboard(text, null, quickCopyPillText);
+    });
+  }
+
+  if (btnQuickOpenClipboard) {
+    btnQuickOpenClipboard.addEventListener('click', () => {
+      switchView('clipboard');
+    });
+  }
+
+  // Effacer l'historique
+  if (btnClearClipboardHistory && snippetsContainer) {
+    btnClearClipboardHistory.addEventListener('click', () => {
+      if (confirm('Voulez-vous effacer l\'historique du presse-papier partagé ?')) {
+        snippetsContainer.innerHTML = `
+          <div style="text-align: center; padding: 24px; color: #94A3B8; font-size: 0.85rem;">
+            Aucun texte dans l'historique. Envoyez ou recevez un texte pour le voir ici.
+          </div>
+        `;
+      }
+    });
+  }
+
+  // Ajouter un nouvel item snippet
+  function addSnippetItem(text, deviceName, timeStr) {
+    if (!snippetsContainer) return;
+    const item = document.createElement('div');
+    item.className = 'snippet-item';
+    item.innerHTML = `
+      <div class="snippet-header">
+        <div class="snippet-source">
+          <span class="badge-device">${deviceName}</span>
+          <span class="snippet-time">${timeStr}</span>
+        </div>
+        <button class="btn-copy-snippet">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" /></svg>
+          <span>Copier</span>
+        </button>
+      </div>
+      <div class="snippet-content">${escapeHtml(text)}</div>
+    `;
+
+    const copyBtn = item.querySelector('.btn-copy-snippet');
+    copyBtn.onclick = () => copyTextToClipboard(text, copyBtn);
+
+    snippetsContainer.insertBefore(item, snippetsContainer.firstChild);
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
+  // Écoute des réceptions en temps réel depuis le smartphone
+  if (window.lancedrop && window.lancedrop.onClipboardReceived) {
+    window.lancedrop.onClipboardReceived((data) => {
+      const content = data.text || data;
+      addSnippetItem(content, data.senderDevice || 'Samsung Galaxy A54', 'À l\'instant');
+      if (quickClipboardTextPreview) quickClipboardTextPreview.textContent = content;
+      if (navClipboardBadge) navClipboardBadge.style.display = 'inline-block';
+    });
+  }
 });
+

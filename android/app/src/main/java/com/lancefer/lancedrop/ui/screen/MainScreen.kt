@@ -30,6 +30,7 @@ enum class AppNavScreen {
     TRANSFERS,
     STORAGE,
     RECEIVE_MODE,
+    CLIPBOARD,
     FILE_PREVIEW,
     SETTINGS
 }
@@ -48,7 +49,7 @@ fun MainScreen(viewModel: MainViewModel) {
     // Gestion du bouton Retour Android matériel / gestuel
     BackHandler(enabled = currentScreen != AppNavScreen.HOME && currentScreen != AppNavScreen.LOGIN && currentScreen != AppNavScreen.SPLASH) {
         when (currentScreen) {
-            AppNavScreen.RECEIVE_MODE, AppNavScreen.STORAGE, AppNavScreen.SETTINGS -> {
+            AppNavScreen.RECEIVE_MODE, AppNavScreen.STORAGE, AppNavScreen.SETTINGS, AppNavScreen.CLIPBOARD -> {
                 currentScreen = AppNavScreen.HOME
             }
             AppNavScreen.FILE_PREVIEW -> {
@@ -180,6 +181,9 @@ fun MainScreen(viewModel: MainViewModel) {
                         onNavigateToReceiveMode = {
                             currentScreen = AppNavScreen.RECEIVE_MODE
                         },
+                        onNavigateToClipboard = {
+                            currentScreen = AppNavScreen.CLIPBOARD
+                        },
                         onNavigateToSettings = {
                             currentScreen = AppNavScreen.SETTINGS
                         }
@@ -226,6 +230,17 @@ fun MainScreen(viewModel: MainViewModel) {
                     ReceiveModeScreen(
                         onNavigateBack = {
                             currentScreen = AppNavScreen.HOME
+                        }
+                    )
+                }
+
+                AppNavScreen.CLIPBOARD -> {
+                    ClipboardScreen(
+                        onNavigateBack = {
+                            currentScreen = AppNavScreen.HOME
+                        },
+                        onSendTextToPc = { text ->
+                            Toast.makeText(context, "Texte envoyé au PC connecté", Toast.LENGTH_SHORT).show()
                         }
                     )
                 }

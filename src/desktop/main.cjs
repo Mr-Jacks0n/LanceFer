@@ -1,7 +1,7 @@
 /**
  * LanceDrop Desktop — Point d'entrée Electron (CommonJS)
  */
-const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron')
+const { app, BrowserWindow, Menu, ipcMain, dialog, clipboard } = require('electron')
 const path = require('path')
 
 // Suppression complète du menu natif blanc obsolète (File, Edit, etc.)
@@ -80,6 +80,34 @@ ipcMain.handle('device:get-info', async () => {
 
 ipcMain.handle('file:delete', async (_, filename) => {
   return { success: true, filename }
+})
+
+// Presse-papier partagé (Clipboard Sharing)
+ipcMain.handle('clipboard:read', async () => {
+  try {
+    return clipboard.readText()
+  } catch (err) {
+    return ''
+  }
+})
+
+ipcMain.handle('clipboard:write', async (_, text) => {
+  try {
+    clipboard.writeText(text || '')
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: err.message }
+  }
+})
+
+ipcMain.handle('clipboard:send', async (_, text) => {
+  // Diffuse ou simule l'envoi vers le smartphone connecté
+  return {
+    success: true,
+    text: text,
+    timestamp: Date.now(),
+    targetDevice: 'Samsung Galaxy A54'
+  }
 })
 
 app.whenReady().then(createWindow)
