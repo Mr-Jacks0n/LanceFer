@@ -14,3 +14,16 @@ tmp/
 Thumbs.db
 [Dd]esktop.ini
 .DS_Store
+
+# Android build artifacts
+.gradle/
+build/
+android/.gradle/
+android/**/build/
+android/local.properties
+*.apk
+*.aab
+
+# IDE
+.idea/
+*.iml

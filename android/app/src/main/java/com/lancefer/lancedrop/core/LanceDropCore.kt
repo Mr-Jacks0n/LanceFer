@@ -1,9 +1,9 @@
-package com.lancefer.fastdrop.core
+package com.lancefer.lancedrop.core
 
 /**
- * FastDrop Core - Client et Moteur de Transfert Local pour Android
+ * LanceDrop Core - Client et Moteur de Transfert Local pour Android
  */
-object FastDropCore {
+object LanceDropCore {
     const val PROTOCOL_VERSION: Byte = 1
     const val DEFAULT_TRANSFER_PORT: Int = 42420
     const val DEFAULT_DISCOVERY_PORT: Int = 42424

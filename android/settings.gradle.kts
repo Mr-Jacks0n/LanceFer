@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "FastDrop"
+rootProject.name = "LanceDrop"
 include(":app")
