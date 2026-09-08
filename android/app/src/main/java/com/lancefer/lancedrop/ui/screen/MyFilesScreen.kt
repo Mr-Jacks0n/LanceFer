@@ -23,6 +23,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lancefer.lancedrop.ui.theme.*
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import com.lancefer.lancedrop.utils.FileHelper
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class MobileFileItem(
     val id: String,
@@ -47,21 +55,66 @@ fun MyFilesScreen(
     var searchQuery by remember { mutableStateOf("") }
     val selectedFileIds = remember { mutableStateListOf<String>() }
     var showSuccessToast by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
-    val files = remember {
-        listOf(
-            MobileFileItem("1", "Paysage_Alpes.jpg", "4,8 Mo", "12 août 2025", "Images", Icons.Default.Image, LanceDropBlue, LanceDropBlueLight),
-            MobileFileItem("2", "Dubai_Ville.jpg", "3,2 Mo", "10 août 2025", "Images", Icons.Default.Image, LanceDropBlue, LanceDropBlueLight),
-            MobileFileItem("3", "Présentation.pptx", "4,7 Mo", "31 juil. 2025", "Documents", Icons.Default.Slideshow, LanceDropOrange, LanceDropOrangeLight),
-            MobileFileItem("4", "Rapport_Projet.pdf", "1,2 Mo", "8 août 2025", "Documents", Icons.Default.PictureAsPdf, LanceDropRed, LanceDropRedLight),
-            MobileFileItem("5", "Musique_AFRO.mp3", "7,3 Mo", "1 août 2025", "Audio", Icons.Default.MusicNote, LanceDropPurple, LanceDropPurpleLight),
-            MobileFileItem("6", "Forêt.jpg", "2,6 Mo", "24 juil. 2025", "Images", Icons.Default.Image, LanceDropGreen, LanceDropGreenLight),
-            MobileFileItem("7", "Voyage_Côte.mp4", "28,7 Mo", "6 août 2025", "Vidéos", Icons.Default.Movie, LanceDropBlue, LanceDropBlueLight),
-            MobileFileItem("8", "Archives.zip", "12,4 Mo", "26 juil. 2025", "Documents", Icons.Default.FolderZip, LanceDropOrange, LanceDropOrangeLight)
-        )
+    // Liste réelle de fichiers sélectionnés par l'utilisateur
+    val realFiles = remember { mutableStateListOf<MobileFileItem>() }
+
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        uris.forEach { uri ->
+            val info = FileHelper.getFileInfoFromUri(context, uri)
+            val name = info?.name ?: "Fichier_${System.currentTimeMillis()}"
+            val size = info?.size ?: 0L
+            val sizeFormatted = String.format(Locale.FRANCE, "%.1f Mo", size.toDouble() / (1024.0 * 1024.0))
+            val dateFormatted = SimpleDateFormat("d MMM yyyy", Locale.FRANCE).format(Date())
+
+            val cat = when {
+                name.endsWith(".jpg", true) || name.endsWith(".png", true) || name.endsWith(".webp", true) -> "Images"
+                name.endsWith(".mp4", true) || name.endsWith(".mkv", true) || name.endsWith(".mov", true) -> "Vidéos"
+                name.endsWith(".mp3", true) || name.endsWith(".wav", true) || name.endsWith(".flac", true) -> "Audio"
+                else -> "Documents"
+            }
+
+            val icon = when (cat) {
+                "Images" -> Icons.Default.Image
+                "Vidéos" -> Icons.Default.Movie
+                "Audio" -> Icons.Default.MusicNote
+                else -> Icons.Default.InsertDriveFile
+            }
+
+            val color = when (cat) {
+                "Images" -> LanceDropBlue
+                "Vidéos" -> LanceDropPurple
+                "Audio" -> LanceDropGreen
+                else -> LanceDropOrange
+            }
+
+            val bgColor = when (cat) {
+                "Images" -> LanceDropBlueLight
+                "Vidéos" -> LanceDropPurpleLight
+                "Audio" -> LanceDropGreenLight
+                else -> LanceDropOrangeLight
+            }
+
+            val newItem = MobileFileItem(
+                id = uri.toString(),
+                name = name,
+                size = sizeFormatted,
+                date = dateFormatted,
+                category = cat,
+                icon = icon,
+                iconColor = color,
+                bgColor = bgColor
+            )
+            if (realFiles.none { it.id == newItem.id }) {
+                realFiles.add(newItem)
+            }
+        }
     }
 
-    val filteredFiles = files.filter { item ->
+    val filteredFiles = realFiles.filter { item ->
         val matchesCat = selectedCategory == "Tous" || item.category == selectedCategory
         val matchesSearch = searchQuery.isBlank() || item.name.contains(searchQuery, ignoreCase = true)
         matchesCat && matchesSearch
@@ -115,8 +168,16 @@ fun MyFilesScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = "Retour", tint = LanceDropTextMainLight)
                     }
                     Text("Mes fichiers", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LanceDropTextMainLight)
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Default.NotificationsNone, contentDescription = null, tint = LanceDropTextMainLight)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        IconButton(onClick = { filePickerLauncher.launch("*/*") }) {
+                            Icon(Icons.Default.Add, contentDescription = "Ajouter", tint = LanceDropBlue)
+                        }
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Default.Sort, contentDescription = "Trier", tint = LanceDropTextMainLight)
+                        }
                     }
                 }
             }
@@ -216,6 +277,91 @@ fun MyFilesScreen(
                 }
 
                 // Grille de Fichiers
+            if (realFiles.isEmpty()) {
+                // ÉTAT VIDE : AUCUN FICHIER CHOISI
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clip(CircleShape)
+                                .background(LanceDropBlueLight),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.FolderOpen,
+                                contentDescription = null,
+                                tint = LanceDropBlue,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "Votre explorateur est vide",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = LanceDropTextMainLight
+                        )
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = "Sélectionnez les vrais fichiers de votre appareil (photos, vidéos, documents) pour préparer un transfert.",
+                            fontSize = 13.sp,
+                            color = LanceDropTextMutedLight,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 18.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        Button(
+                            onClick = { filePickerLauncher.launch("*/*") },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = LanceDropBlue)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
+                                Text("Parcourir l'appareil", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            }
+                        }
+                    }
+                }
+            } else if (filteredFiles.isEmpty()) {
+                // ÉTAT VIDE RECHERCHE
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Aucun fichier trouvé",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = LanceDropTextMainLight
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Essayez un autre mot-clé ou modifiez la catégorie.",
+                            fontSize = 12.sp,
+                            color = LanceDropTextMutedLight
+                        )
+                    }
+                }
+            } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),
@@ -287,11 +433,12 @@ fun MyFilesScreen(
                             }
                         }
                     }
-                }
             }
+        }
+    }
 
-            // Notification Toast (Transfert terminé !)
-            AnimatedVisibility(
+    // Notification Toast (Transfert terminé !)
+    AnimatedVisibility(
                 visible = showSuccessToast,
                 enter = fadeIn() + slideInVertically { it },
                 exit = fadeOut() + slideOutVertically { it },

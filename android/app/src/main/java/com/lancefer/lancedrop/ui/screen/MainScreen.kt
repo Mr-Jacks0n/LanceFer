@@ -102,17 +102,22 @@ fun MainScreen(viewModel: MainViewModel) {
                         )
                     )
 
+                    val activeTransferCount = if (uiState.activeTransferState is TransferState.Transferring) 1 else 0
                     NavigationBarItem(
                         selected = currentScreen == AppNavScreen.TRANSFERS,
                         onClick = { currentScreen = AppNavScreen.TRANSFERS },
                         icon = {
-                            BadgedBox(
-                                badge = {
-                                    Badge(containerColor = LanceDropBlue) {
-                                        Text("1", color = Color.White)
+                            if (activeTransferCount > 0) {
+                                BadgedBox(
+                                    badge = {
+                                        Badge(containerColor = LanceDropBlue) {
+                                            Text("$activeTransferCount", color = Color.White)
+                                        }
                                     }
+                                ) {
+                                    Icon(Icons.Default.SwapVert, contentDescription = "Transferts")
                                 }
-                            ) {
+                            } else {
                                 Icon(Icons.Default.SwapVert, contentDescription = "Transferts")
                             }
                         },
@@ -168,6 +173,7 @@ fun MainScreen(viewModel: MainViewModel) {
 
                 AppNavScreen.HOME -> {
                     HomeScreen(
+                        recentTransfers = uiState.transferHistory,
                         onNavigateToFiles = { category ->
                             selectedCategory = category ?: "Tous"
                             currentScreen = AppNavScreen.FILES
@@ -208,6 +214,7 @@ fun MainScreen(viewModel: MainViewModel) {
 
                 AppNavScreen.TRANSFERS -> {
                     ActiveTransfersScreen(
+                        viewModel = viewModel,
                         onNavigateBack = {
                             currentScreen = AppNavScreen.HOME
                         }
@@ -216,6 +223,7 @@ fun MainScreen(viewModel: MainViewModel) {
 
                 AppNavScreen.STORAGE -> {
                     PhoneStorageScreen(
+                        viewModel = viewModel,
                         onNavigateBack = {
                             currentScreen = AppNavScreen.HOME
                         },

@@ -66,16 +66,18 @@ ipcMain.handle('dialog:open-files', async () => {
   }))
 })
 
+let connectedDevice = null
+
 ipcMain.handle('device:get-info', async () => {
-  return {
-    name: 'Samsung Galaxy A54',
-    os: 'Android 14',
-    status: 'Connecté',
-    usedStorage: '124,6 Go',
-    totalStorage: '256 Go',
-    deviceId: 'dev-galaxy-a54',
-    ip: '192.168.1.45'
+  return connectedDevice
+})
+
+ipcMain.handle('device:set-connected', async (_, device) => {
+  connectedDevice = device
+  if (mainWindow) {
+    mainWindow.webContents.send('device:changed', connectedDevice)
   }
+  return { success: true }
 })
 
 ipcMain.handle('file:delete', async (_, filename) => {
@@ -101,12 +103,11 @@ ipcMain.handle('clipboard:write', async (_, text) => {
 })
 
 ipcMain.handle('clipboard:send', async (_, text) => {
-  // Diffuse ou simule l'envoi vers le smartphone connecté
   return {
     success: true,
     text: text,
     timestamp: Date.now(),
-    targetDevice: 'Samsung Galaxy A54'
+    targetDevice: connectedDevice ? connectedDevice.name : 'Mobile connecté'
   }
 })
 

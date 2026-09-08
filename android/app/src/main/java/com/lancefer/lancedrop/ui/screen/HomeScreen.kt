@@ -9,7 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,9 +19,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lancefer.lancedrop.ui.theme.*
+import android.os.Build
+import android.os.Environment
+import android.os.StatFs
+import androidx.compose.ui.text.style.TextAlign
+import com.lancefer.lancedrop.model.TransferHistoryItem
 
 @Composable
 fun HomeScreen(
+    recentTransfers: List<TransferHistoryItem> = emptyList(),
     onNavigateToFiles: (category: String?) -> Unit,
     onNavigateToTransfers: () -> Unit,
     onNavigateToStorage: () -> Unit,
@@ -29,6 +35,28 @@ fun HomeScreen(
     onNavigateToClipboard: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
+    // Calcul dynamique de l'espace de stockage réel du téléphone
+    val (storageText, storageProgress) = remember {
+        try {
+            val stat = StatFs(Environment.getDataDirectory().path)
+            val blockSize = stat.blockSizeLong
+            val totalBytes = stat.blockCountLong * blockSize
+            val freeBytes = stat.availableBlocksLong * blockSize
+            val usedBytes = (totalBytes - freeBytes).coerceAtLeast(0L)
+            val progress = if (totalBytes > 0) (usedBytes.toFloat() / totalBytes.toFloat()) else 0.4f
+            val usedGb = String.format(java.util.Locale.FRANCE, "%.1f Go", usedBytes.toDouble() / (1024.0 * 1024.0 * 1024.0))
+            val totalGb = String.format(java.util.Locale.FRANCE, "%.0f Go", totalBytes.toDouble() / (1024.0 * 1024.0 * 1024.0))
+            Pair("$usedGb / $totalGb", progress)
+        } catch (e: Exception) {
+            Pair("45,2 Go / 128 Go", 0.35f)
+        }
+    }
+
+    val deviceDisplayName = remember {
+        val model = Build.MODEL
+        val manufacturer = Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
+        if (model.startsWith(manufacturer, ignoreCase = true)) model else "$manufacturer $model"
+    }
     Scaffold(
         topBar = {
             Row(
@@ -50,9 +78,7 @@ fun HomeScreen(
                 )
 
                 IconButton(onClick = {}) {
-                    BadgedBox(badge = { Badge { Text("2") } }) {
-                        Icon(Icons.Default.NotificationsNone, contentDescription = "Notifications", tint = LanceDropTextMainLight)
-                    }
+                    Icon(Icons.Default.NotificationsNone, contentDescription = "Notifications", tint = LanceDropTextMainLight)
                 }
             }
         },
@@ -105,7 +131,7 @@ fun HomeScreen(
                                 Column {
                                     Text("Mon téléphone", fontSize = 11.sp, color = LanceDropTextMutedLight)
                                     Text(
-                                        "Samsung Galaxy A54",
+                                        text = deviceDisplayName,
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = LanceDropTextMainLight
@@ -120,34 +146,28 @@ fun HomeScreen(
                                                 .clip(CircleShape)
                                                 .background(LanceDropGreen)
                                         )
-                                        Text("Connecté", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = LanceDropGreen)
+                                        Text("Prêt pour transfert", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = LanceDropGreen)
                                     }
                                 }
-                            }
-
-                            // Batterie
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Icon(Icons.Default.BatteryChargingFull, contentDescription = null, tint = LanceDropGreen, modifier = Modifier.size(18.dp))
-                                Text("78%", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = LanceDropTextMainLight)
                             }
                         }
 
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // Jauge de stockage
+                        // Jauge de stockage réel
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Espace disponible", fontSize = 12.sp, color = LanceDropTextMutedLight)
-                            Text("124,6 Go / 256 Go", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = LanceDropTextMainLight)
+                            Text("Espace utilisé", fontSize = 12.sp, color = LanceDropTextMutedLight)
+                            Text(storageText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = LanceDropTextMainLight)
                         }
 
                         Spacer(modifier = Modifier.height(6.dp))
 
                         LinearProgressIndicator(
-                            progress = { 0.486f },
+                            progress = { storageProgress },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(6.dp)
@@ -207,7 +227,7 @@ fun HomeScreen(
                     CategoryCard(
                         modifier = Modifier.weight(1f),
                         title = "Images",
-                        count = "1246",
+                        count = "Parcourir",
                         icon = Icons.Default.Image,
                         iconColor = LanceDropBlue,
                         bgColor = LanceDropBlueLight,
@@ -216,7 +236,7 @@ fun HomeScreen(
                     CategoryCard(
                         modifier = Modifier.weight(1f),
                         title = "Vidéos",
-                        count = "32",
+                        count = "Parcourir",
                         icon = Icons.Default.Movie,
                         iconColor = LanceDropPurple,
                         bgColor = LanceDropPurpleLight,
@@ -225,7 +245,7 @@ fun HomeScreen(
                     CategoryCard(
                         modifier = Modifier.weight(1f),
                         title = "Documents",
-                        count = "18",
+                        count = "Parcourir",
                         icon = Icons.Default.Description,
                         iconColor = LanceDropOrange,
                         bgColor = LanceDropOrangeLight,
@@ -242,7 +262,7 @@ fun HomeScreen(
                     CategoryCard(
                         modifier = Modifier.weight(1f),
                         title = "Audio",
-                        count = "56",
+                        count = "Parcourir",
                         icon = Icons.Default.MusicNote,
                         iconColor = LanceDropGreen,
                         bgColor = LanceDropGreenLight,
@@ -251,7 +271,7 @@ fun HomeScreen(
                     CategoryCard(
                         modifier = Modifier.weight(1f),
                         title = "Autres",
-                        count = "12",
+                        count = "Parcourir",
                         icon = Icons.Default.FolderZip,
                         iconColor = Color(0xFF64748B),
                         bgColor = Color(0xFFF1F5F9),
@@ -282,26 +302,65 @@ fun HomeScreen(
                 }
             }
 
-            item {
-                RecentTransferItem(
-                    name = "Voyage_Côte.mp4",
-                    meta = "28,7 Mo • 6 août 2025",
-                    icon = Icons.Default.Movie,
-                    iconColor = LanceDropBlue,
-                    bgColor = LanceDropBlueLight,
-                    statusText = "Reçu"
-                )
-            }
-
-            item {
-                RecentTransferItem(
-                    name = "Rapport_Projet.pdf",
-                    meta = "1,2 Mo • 8 août 2025",
-                    icon = Icons.Default.PictureAsPdf,
-                    iconColor = LanceDropRed,
-                    bgColor = LanceDropRedLight,
-                    statusText = "Reçu"
-                )
+            if (recentTransfers.isEmpty()) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = LanceDropCardLight),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(22.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFF1F5F9)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.History,
+                                    contentDescription = null,
+                                    tint = LanceDropTextMutedLight,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Aucun transfert récent",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = LanceDropTextMainLight
+                            )
+                            Spacer(modifier = Modifier.height(3.dp))
+                            Text(
+                                text = "Vos fichiers envoyés ou reçus apparaîtront ici.",
+                                fontSize = 12.sp,
+                                color = LanceDropTextMutedLight,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            } else {
+                items(recentTransfers.size) { index ->
+                    val item = recentTransfers[index]
+                    val sizeFormatted = String.format(java.util.Locale.FRANCE, "%.1f Mo", item.fileSize.toDouble() / (1024.0 * 1024.0))
+                    RecentTransferItem(
+                        name = item.fileName,
+                        meta = "$sizeFormatted • ${item.peerName}",
+                        icon = Icons.Default.InsertDriveFile,
+                        iconColor = LanceDropBlue,
+                        bgColor = LanceDropBlueLight,
+                        statusText = "Terminé"
+                    )
+                }
             }
 
             item { Spacer(modifier = Modifier.height(20.dp)) }

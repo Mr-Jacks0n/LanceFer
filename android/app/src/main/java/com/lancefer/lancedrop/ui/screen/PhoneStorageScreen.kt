@@ -1,5 +1,6 @@
 package com.lancefer.lancedrop.ui.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,29 +12,43 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lancefer.lancedrop.ui.theme.*
+import com.lancefer.lancedrop.ui.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PhoneStorageScreen(
+    viewModel: MainViewModel = viewModel(),
     onNavigateBack: () -> Unit,
     onCategoryClick: (category: String) -> Unit
 ) {
+    val context = LocalContext.current
+    val storageInfo = remember { viewModel.getRealStorageInfo() }
+    val deviceName = remember {
+        val model = android.os.Build.MODEL
+        val manufacturer = android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
+        if (model.startsWith(manufacturer, ignoreCase = true)) model else "$manufacturer $model"
+    }
+
+    var isCleaned by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Stockage interne",
+                        text = "Stockage de l'appareil",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         color = LanceDropTextMainLight
@@ -61,7 +76,7 @@ fun PhoneStorageScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // ─────────────────────────────────────────────────────────────
-            // 1. CARTE PRINCIPALE : GAUGE & STATISTIQUES GLOBALES
+            // 1. CARTE PRINCIPALE : STATISTIQUES RÉELLES
             // ─────────────────────────────────────────────────────────────
             item {
                 Card(
@@ -86,13 +101,13 @@ fun PhoneStorageScreen(
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Row(verticalAlignment = Alignment.Bottom) {
                                     Text(
-                                        text = "84,3 Go",
+                                        text = storageInfo.usedFormatted,
                                         fontSize = 26.sp,
                                         fontWeight = FontWeight.ExtraBold,
                                         color = LanceDropTextMainLight
                                     )
                                     Text(
-                                        text = " / 128 Go",
+                                        text = " / ${storageInfo.totalFormatted}",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.SemiBold,
                                         color = LanceDropTextMutedLight,
@@ -101,7 +116,8 @@ fun PhoneStorageScreen(
                                 }
                             }
 
-                            // Badge pourcentage
+                            // Badge pourcentage réel
+                            val percentInt = (storageInfo.usedPercentage * 100).toInt()
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
@@ -109,7 +125,7 @@ fun PhoneStorageScreen(
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
                                 Text(
-                                    text = "66% plein",
+                                    text = "$percentInt% plein",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = LanceDropBlue
@@ -119,7 +135,9 @@ fun PhoneStorageScreen(
 
                         Spacer(modifier = Modifier.height(18.dp))
 
-                        // Barre segmentée multi-couleurs
+                        // Barre de progression réelle
+                        val usedWeight = storageInfo.usedPercentage.coerceIn(0.02f, 0.98f)
+                        val freeWeight = (1f - storageInfo.usedPercentage).coerceIn(0.02f, 0.98f)
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -127,20 +145,18 @@ fun PhoneStorageScreen(
                                 .clip(CircleShape)
                                 .background(Color(0xFFE2E8F0))
                         ) {
-                            // Images : ~21%
-                            Box(modifier = Modifier.weight(0.21f).fillMaxHeight().background(Color(0xFF3B82F6)))
-                            // Vidéos : ~14%
-                            Box(modifier = Modifier.weight(0.14f).fillMaxHeight().background(Color(0xFF8B5CF6)))
-                            // Applications : ~12%
-                            Box(modifier = Modifier.weight(0.12f).fillMaxHeight().background(Color(0xFF06B6D4)))
-                            // Documents : ~10%
-                            Box(modifier = Modifier.weight(0.10f).fillMaxHeight().background(Color(0xFFF59E0B)))
-                            // Audio : ~5%
-                            Box(modifier = Modifier.weight(0.05f).fillMaxHeight().background(Color(0xFF10B981)))
-                            // Autres : ~4%
-                            Box(modifier = Modifier.weight(0.04f).fillMaxHeight().background(Color(0xFF64748B)))
-                            // Libre : ~34%
-                            Box(modifier = Modifier.weight(0.34f).fillMaxHeight().background(Color(0xFFE2E8F0)))
+                            Box(
+                                modifier = Modifier
+                                    .weight(usedWeight)
+                                    .fillMaxHeight()
+                                    .background(LanceDropBlue)
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .weight(freeWeight)
+                                    .fillMaxHeight()
+                                    .background(Color(0xFFE2E8F0))
+                            )
                         }
 
                         Spacer(modifier = Modifier.height(14.dp))
@@ -150,13 +166,13 @@ fun PhoneStorageScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "43,7 Go libres",
+                                text = "${storageInfo.freeFormatted} libres",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = LanceDropGreen
                             )
                             Text(
-                                text = "Samsung Galaxy A54 5G",
+                                text = deviceName,
                                 fontSize = 12.sp,
                                 color = LanceDropTextMutedLight
                             )
@@ -199,13 +215,13 @@ fun PhoneStorageScreen(
 
                             Column {
                                 Text(
-                                    text = "Nettoyage rapide",
+                                    text = if (isCleaned) "Stockage optimisé" else "Nettoyage du cache",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = LanceDropTextMainLight
                                 )
                                 Text(
-                                    text = "1,4 Go de fichiers temporaires ou doublons détectés.",
+                                    text = if (isCleaned) "Cache vidé avec succès. Aucun fichier résiduel." else "Supprimez les fichiers temporaires et le cache de l'application.",
                                     fontSize = 12.sp,
                                     color = LanceDropTextMutedLight,
                                     lineHeight = 16.sp
@@ -214,12 +230,20 @@ fun PhoneStorageScreen(
                         }
 
                         Button(
-                            onClick = {},
+                            onClick = {
+                                try {
+                                    context.cacheDir.deleteRecursively()
+                                    isCleaned = true
+                                    Toast.makeText(context, "Cache de l'application nettoyé !", Toast.LENGTH_SHORT).show()
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Nettoyage terminé", Toast.LENGTH_SHORT).show()
+                                }
+                            },
                             shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = LanceDropBlue),
+                            colors = ButtonDefaults.buttonColors(containerColor = if (isCleaned) LanceDropGreen else LanceDropBlue),
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
                         ) {
-                            Text("Libérer", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text(if (isCleaned) "Fait" else "Nettoyer", fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -230,7 +254,7 @@ fun PhoneStorageScreen(
             // ─────────────────────────────────────────────────────────────
             item {
                 Text(
-                    text = "Détail par catégorie",
+                    text = "Explorer par catégorie",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = LanceDropTextMainLight,
@@ -253,8 +277,7 @@ fun PhoneStorageScreen(
                             iconColor = Color(0xFF3B82F6),
                             bgColor = Color(0xFFEFF6FF),
                             title = "Images & Photos",
-                            details = "3 450 fichiers",
-                            sizeText = "26,8 Go",
+                            details = "Parcourir les photos de l'appareil",
                             onClick = { onCategoryClick("Images") }
                         )
                         HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
@@ -264,20 +287,8 @@ fun PhoneStorageScreen(
                             iconColor = Color(0xFF8B5CF6),
                             bgColor = Color(0xFFF5F3FF),
                             title = "Vidéos",
-                            details = "124 fichiers",
-                            sizeText = "18,4 Go",
+                            details = "Parcourir les vidéos de l'appareil",
                             onClick = { onCategoryClick("Vidéos") }
-                        )
-                        HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
-
-                        StorageCategoryRow(
-                            icon = Icons.Default.Apps,
-                            iconColor = Color(0xFF06B6D4),
-                            bgColor = Color(0xFFECFEFF),
-                            title = "Applications & Données",
-                            details = "88 applications installées",
-                            sizeText = "15,2 Go",
-                            onClick = { onCategoryClick("Apps") }
                         )
                         HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
 
@@ -286,8 +297,7 @@ fun PhoneStorageScreen(
                             iconColor = Color(0xFFF59E0B),
                             bgColor = Color(0xFFFFFBEB),
                             title = "Documents & Fichiers PDF",
-                            details = "412 fichiers",
-                            sizeText = "12,6 Go",
+                            details = "Parcourir les documents et rapports",
                             onClick = { onCategoryClick("Documents") }
                         )
                         HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
@@ -297,8 +307,7 @@ fun PhoneStorageScreen(
                             iconColor = Color(0xFF10B981),
                             bgColor = Color(0xFFECFDF5),
                             title = "Audio & Musique",
-                            details = "540 fichiers",
-                            sizeText = "6,2 Go",
+                            details = "Parcourir les fichiers audio",
                             onClick = { onCategoryClick("Audio") }
                         )
                         HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
@@ -307,9 +316,8 @@ fun PhoneStorageScreen(
                             icon = Icons.Default.FolderOpen,
                             iconColor = Color(0xFF64748B),
                             bgColor = Color(0xFFF8FAFC),
-                            title = "Autres & Téléchargements",
-                            details = "Système, cache et archives",
-                            sizeText = "5,1 Go",
+                            title = "Tous les fichiers",
+                            details = "Explorateur complet avec sélecteur SAF",
                             onClick = { onCategoryClick("Tous") }
                         )
                     }
@@ -330,14 +338,13 @@ private fun StorageCategoryRow(
     bgColor: Color,
     title: String,
     details: String,
-    sizeText: String,
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -370,22 +377,11 @@ private fun StorageCategoryRow(
             }
         }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = sizeText,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = LanceDropTextMainLight
-            )
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowForwardIos,
-                contentDescription = null,
-                tint = Color(0xFFCBD5E1),
-                modifier = Modifier.size(13.dp)
-            )
-        }
+        Icon(
+            Icons.AutoMirrored.Filled.ArrowForwardIos,
+            contentDescription = null,
+            tint = LanceDropTextMutedLight,
+            modifier = Modifier.size(14.dp)
+        )
     }
 }

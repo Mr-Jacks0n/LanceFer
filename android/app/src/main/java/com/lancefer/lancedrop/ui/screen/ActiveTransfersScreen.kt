@@ -1,11 +1,14 @@
 package com.lancefer.lancedrop.ui.screen
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,16 +17,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.lancefer.lancedrop.model.TransferHistoryItem
+import com.lancefer.lancedrop.model.TransferState
 import com.lancefer.lancedrop.ui.theme.*
+import com.lancefer.lancedrop.ui.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActiveTransfersScreen(
+    viewModel: MainViewModel = viewModel(),
     onNavigateBack: () -> Unit
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableStateOf(0) } // 0: En cours, 1: Terminés
+
+    val activeCount = if (uiState.activeTransferState is TransferState.Transferring) 1 else 0
+    val finishedCount = uiState.transferHistory.size
 
     Scaffold(
         topBar = {
@@ -34,11 +47,11 @@ fun ActiveTransfersScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onNavigateBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Retour", tint = LanceDropTextMainLight)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour", tint = LanceDropTextMainLight)
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Transfert en cours",
+                    text = "Transferts",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = LanceDropTextMainLight
@@ -53,7 +66,7 @@ fun ActiveTransfersScreen(
                 .padding(padding)
                 .padding(horizontal = 20.dp)
         ) {
-            // Sélecteur d'onglets En cours (2) / Terminés (5)
+            // Sélecteur d'onglets dynamique En cours (activeCount) / Terminés (finishedCount)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -71,7 +84,11 @@ fun ActiveTransfersScreen(
                     ),
                     elevation = null
                 ) {
-                    Text("En cours (2)", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text(
+                        text = if (activeCount > 0) "En cours ($activeCount)" else "En cours",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
                 }
 
                 Button(
@@ -84,69 +101,191 @@ fun ActiveTransfersScreen(
                     ),
                     elevation = null
                 ) {
-                    Text("Terminés (5)", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text(
+                        text = if (finishedCount > 0) "Terminés ($finishedCount)" else "Terminés",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(18.dp))
 
             if (selectedTab == 0) {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    // Item 1 : Voyage_Côte.mp4 (69%)
-                    item {
-                        TransferProgressCard(
-                            name = "Voyage_Côte.mp4",
-                            progress = 0.69f,
-                            percentText = "69%",
-                            speedText = "12,4 Mo / 28,7 Mo",
-                            rateText = "2,8 Mo/s",
-                            icon = Icons.Default.Movie,
-                            iconColor = LanceDropBlue,
-                            bgColor = LanceDropBlueLight,
-                            actionIcon = Icons.Default.Pause
-                        )
+                // ONGLET EN COURS
+                when (val transferState = uiState.activeTransferState) {
+                    is TransferState.Transferring -> {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(14.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            item {
+                                TransferProgressCardLive(
+                                    state = transferState,
+                                    onPause = { viewModel.pauseTransfer() },
+                                    onResume = { viewModel.resumeTransfer() },
+                                    onCancel = { viewModel.cancelTransfer() }
+                                )
+                            }
+                        }
                     }
-
-                    // Item 2 : Rapport_Projet.pdf (38%)
-                    item {
-                        TransferProgressCard(
-                            name = "Rapport_Projet.pdf",
-                            progress = 0.38f,
-                            percentText = "38%",
-                            speedText = "0,8 Mo / 1,2 Mo",
-                            rateText = "1,2 Mo/s",
-                            icon = Icons.Default.PictureAsPdf,
-                            iconColor = LanceDropRed,
-                            bgColor = LanceDropRedLight,
-                            actionIcon = Icons.Default.Close
-                        )
+                    is TransferState.Error -> {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = LanceDropRedLight)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(20.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = LanceDropRed, modifier = Modifier.size(36.dp))
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    Text("Erreur de transfert", fontWeight = FontWeight.Bold, color = LanceDropRed, fontSize = 15.sp)
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(transferState.message, color = LanceDropTextMutedLight, fontSize = 12.sp, textAlign = TextAlign.Center)
+                                    Spacer(modifier = Modifier.height(14.dp))
+                                    Button(
+                                        onClick = { viewModel.resumeTransfer() },
+                                        colors = ButtonDefaults.buttonColors(containerColor = LanceDropRed)
+                                    ) {
+                                        Text("Réessayer")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else -> {
+                        // Empty state quand aucun transfert n'est actif
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(containerColor = LanceDropCardLight),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(32.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(54.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFFF1F5F9)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Default.SwapVert,
+                                            contentDescription = null,
+                                            tint = LanceDropTextMutedLight,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(14.dp))
+                                    Text(
+                                        text = "Aucun transfert en cours",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = LanceDropTextMainLight
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "Sélectionnez des fichiers dans vos documents ou recevez un fichier depuis un autre appareil pour lancer un échange.",
+                                        fontSize = 12.sp,
+                                        color = LanceDropTextMutedLight,
+                                        textAlign = TextAlign.Center,
+                                        lineHeight = 17.sp
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             } else {
-                // Fichiers terminés
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    listOf(
-                        "Paysage_Alpes.jpg" to "4,8 Mo",
-                        "Dubai_Ville.jpg" to "3,2 Mo",
-                        "Présentation.pptx" to "4,7 Mo",
-                        "Musique_AFRO.mp3" to "7,3 Mo",
-                        "CV_John.docx" to "842 Ko"
-                    ).forEach { (name, size) ->
-                        item {
+                // ONGLET TERMINÉS
+                if (uiState.transferHistory.isNotEmpty()) {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        items(uiState.transferHistory, key = { it.id }) { item ->
+                            val sizeFormatted = formatFileSize(item.fileSize)
                             RecentTransferItem(
-                                name = name,
-                                meta = "$size • Terminé avec succès",
+                                name = item.fileName,
+                                meta = "$sizeFormatted • ${item.peerName}",
                                 icon = Icons.Default.CheckCircle,
                                 iconColor = LanceDropGreen,
                                 bgColor = LanceDropGreenLight,
                                 statusText = "100%"
                             )
+                        }
+                    }
+                } else {
+                    // Empty state pour les transferts terminés
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.cardColors(containerColor = LanceDropCardLight),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(54.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFF1F5F9)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Default.History,
+                                        contentDescription = null,
+                                        tint = LanceDropTextMutedLight,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(14.dp))
+                                Text(
+                                    text = "Aucun transfert terminé",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = LanceDropTextMainLight
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "L'historique des fichiers envoyés ou reçus avec succès s'affichera ici.",
+                                    fontSize = 12.sp,
+                                    color = LanceDropTextMutedLight,
+                                    textAlign = TextAlign.Center,
+                                    lineHeight = 17.sp
+                                )
+                            }
                         }
                     }
                 }
@@ -196,24 +335,24 @@ fun ActiveTransfersScreen(
 }
 
 @Composable
-fun TransferProgressCard(
-    name: String,
-    progress: Float,
-    percentText: String,
-    speedText: String,
-    rateText: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    iconColor: Color,
-    bgColor: Color,
-    actionIcon: androidx.compose.ui.graphics.vector.ImageVector
+fun TransferProgressCardLive(
+    state: TransferState.Transferring,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
+    onCancel: () -> Unit
 ) {
+    val percentText = "${(state.progressPercentage * 100).toInt()}%"
+    val transferredMb = formatFileSize(state.transferredBytes)
+    val totalMb = formatFileSize(state.totalBytes)
+    val speedMb = String.format(java.util.Locale.FRANCE, "%.1f Mo/s", state.speedBytesPerSec / (1024.0 * 1024.0))
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = LanceDropCardLight),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -225,33 +364,47 @@ fun TransferProgressCard(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(bgColor),
+                            .size(42.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(LanceDropBlueLight),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(22.dp))
+                        Icon(Icons.Default.InsertDriveFile, contentDescription = null, tint = LanceDropBlue, modifier = Modifier.size(22.dp))
                     }
                     Column {
-                        Text(name, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LanceDropTextMainLight)
-                        Text(percentText, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = LanceDropBlue)
+                        Text(state.fileName, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LanceDropTextMainLight)
+                        Text(
+                            text = if (state.isPaused) "$percentText • En pause" else "$percentText • En cours",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (state.isPaused) LanceDropOrange else LanceDropBlue
+                        )
                     }
                 }
 
-                IconButton(onClick = {}) {
-                    Icon(actionIcon, contentDescription = null, tint = LanceDropTextMutedLight)
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    IconButton(onClick = { if (state.isPaused) onResume() else onPause() }) {
+                        Icon(
+                            imageVector = if (state.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                            contentDescription = if (state.isPaused) "Reprendre" else "Pause",
+                            tint = LanceDropBlue
+                        )
+                    }
+                    IconButton(onClick = onCancel) {
+                        Icon(Icons.Default.Close, contentDescription = "Annuler", tint = LanceDropRed)
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             LinearProgressIndicator(
-                progress = { progress },
+                progress = { state.progressPercentage },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(CircleShape),
-                color = LanceDropBlue,
+                color = if (state.isPaused) LanceDropOrange else LanceDropBlue,
                 trackColor = Color(0xFFE2E8F0)
             )
 
@@ -261,9 +414,19 @@ fun TransferProgressCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(speedText, fontSize = 11.sp, color = LanceDropTextMutedLight)
-                Text(rateText, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = LanceDropTextMainLight)
+                Text("$transferredMb / $totalMb", fontSize = 11.sp, color = LanceDropTextMutedLight)
+                Text(speedMb, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = LanceDropTextMainLight)
             }
         }
+    }
+}
+
+private fun formatFileSize(bytes: Long): String {
+    return if (bytes < 1024 * 1024) {
+        String.format(java.util.Locale.FRANCE, "%.0f Ko", bytes.toDouble() / 1024.0)
+    } else if (bytes < 1024 * 1024 * 1024) {
+        String.format(java.util.Locale.FRANCE, "%.1f Mo", bytes.toDouble() / (1024.0 * 1024.0))
+    } else {
+        String.format(java.util.Locale.FRANCE, "%.2f Go", bytes.toDouble() / (1024.0 * 1024.0 * 1024.0))
     }
 }

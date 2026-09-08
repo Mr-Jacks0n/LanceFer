@@ -14,7 +14,8 @@ contextBridge.exposeInMainWorld('lancedrop', {
   readClipboard: () => ipcRenderer.invoke('clipboard:read'),
   writeClipboard: (text) => ipcRenderer.invoke('clipboard:write', text),
   sendClipboardText: (text) => ipcRenderer.invoke('clipboard:send', text),
-  onClipboardReceived: (cb) => ipcRenderer.on('clipboard:received', (_, data) => cb(data))
+  onClipboardReceived: (cb) => ipcRenderer.on('clipboard:received', (_, data) => cb(data)),
+  onDeviceChanged: (cb) => ipcRenderer.on('device:changed', (_, data) => cb(data))
 });
 
 // Rétrocompatibilité

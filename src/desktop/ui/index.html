@@ -103,7 +103,7 @@
       <header class="content-header">
         <div class="header-titles">
           <h1>Bibliothèque PC</h1>
-          <p class="stats-text" id="statsCounter">248 fichiers • 12,4 Go utilisés sur 256 Go</p>
+          <p class="stats-text" id="statsCounter">0 fichier • 0 Mo</p>
         </div>
 
         <div class="header-actions">
@@ -169,233 +169,27 @@
         </div>
       </div>
 
-      <!-- Grille des Fichiers -->
+      <!-- Grille des Fichiers & État Vide -->
       <div class="files-container" id="filesContainer">
-        <div class="files-grid" id="filesGrid">
-          
-          <!-- 1. Paysage_Alpes.jpg (Sélectionné par défaut comme sur la maquette) -->
-          <div class="file-card selected" data-id="1" data-category="images" data-name="Paysage_Alpes.jpg" data-size="4,8 Mo" data-date="12 août 2025">
-            <div class="card-checkbox checked">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </div>
-            <button class="card-menu-btn" title="Options"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
-            <div class="card-thumb thumb-landscape">
-              <div class="gradient-lake"></div>
-            </div>
-            <div class="card-body">
-              <div class="card-title" title="Paysage_Alpes.jpg">Paysage_Alpes.jpg</div>
-              <div class="card-meta">4,8 Mo • 12 août 2025</div>
-              <div class="card-status status-success">
-                <span class="status-dot-green"></span>
-                <span>Transféré</span>
-              </div>
-            </div>
+        <div class="empty-state-card" id="libraryEmptyState">
+          <div class="empty-state-icon-wrapper">
+            <svg viewBox="0 0 48 48" fill="none" style="width: 52px; height: 52px;">
+              <rect width="48" height="48" rx="14" fill="#EFF6FF"/>
+              <path d="M24 16V28M24 16L20 20M24 16L28 20" stroke="#1A73E8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M14 26V30C14 31.1046 14.8954 32 16 32H32C33.1046 32 34 31.1046 34 30V26" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
           </div>
-
-          <!-- 2. Dubai_Ville.jpg -->
-          <div class="file-card" data-id="2" data-category="images" data-name="Dubai_Ville.jpg" data-size="3,2 Mo" data-date="10 août 2025">
-            <div class="card-checkbox">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </div>
-            <button class="card-menu-btn" title="Options"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
-            <div class="card-thumb thumb-dubai">
-              <div class="gradient-skyline"></div>
-            </div>
-            <div class="card-body">
-              <div class="card-title" title="Dubai_Ville.jpg">Dubai_Ville.jpg</div>
-              <div class="card-meta">3,2 Mo • 10 août 2025</div>
-              <div class="card-status status-success">
-                <span class="status-dot-green"></span>
-                <span>Transféré</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3. Rapport_Projet.pdf -->
-          <div class="file-card" data-id="3" data-category="docs" data-name="Rapport_Projet.pdf" data-size="1,2 Mo" data-date="8 août 2025">
-            <div class="card-checkbox">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </div>
-            <button class="card-menu-btn" title="Options"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
-            <div class="card-thumb thumb-icon-doc icon-pdf">
-              <svg viewBox="0 0 48 48" fill="none">
-                <rect width="40" height="40" rx="8" fill="#FEE2E2"/>
-                <path d="M16 14C16 12.8954 16.8954 12 18 12H26L32 18V32C32 33.1046 31.1046 34 30 34H18C16.8954 34 16 33.1046 16 32V14Z" fill="#EF4444"/>
-                <path d="M26 12V18H32" fill="#F87171"/>
-                <path d="M20 25C20.5523 25 21 24.5523 21 24C21 23.4477 20.5523 23 20 23H19V27H20C20.5523 27 21 26.5523 21 26C21 25.4477 20.5523 25 20 25Z" fill="white"/>
-              </svg>
-            </div>
-            <div class="card-body">
-              <div class="card-title" title="Rapport_Projet.pdf">Rapport_Projet.pdf</div>
-              <div class="card-meta">1,2 Mo • 8 août 2025</div>
-              <div class="card-status status-success">
-                <span class="status-dot-green"></span>
-                <span>Transféré</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 4. Voyage_Côte.mp4 (En cours de transfert) -->
-          <div class="file-card" data-id="4" data-category="videos" data-name="Voyage_Côte.mp4" data-size="28,7 Mo" data-date="6 août 2025">
-            <div class="card-checkbox">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </div>
-            <button class="card-menu-btn" title="Options"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
-            <div class="card-thumb thumb-video">
-              <div class="gradient-coast"></div>
-              <div class="play-overlay">
-                <svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-              </div>
-              <span class="video-duration">03:24</span>
-            </div>
-            <div class="card-body">
-              <div class="card-title" title="Voyage_Côte.mp4">Voyage_Côte.mp4</div>
-              <div class="card-meta">28,7 Mo • 6 août 2025</div>
-              <div class="card-status status-pending">
-                <span class="status-dot-blue"></span>
-                <span>En cours de transfert</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 5. Portrait.jpg -->
-          <div class="file-card" data-id="5" data-category="images" data-name="Portrait.jpg" data-size="2,6 Mo" data-date="5 août 2025">
-            <div class="card-checkbox">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </div>
-            <button class="card-menu-btn" title="Options"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
-            <div class="card-thumb thumb-portrait">
-              <div class="gradient-portrait"></div>
-            </div>
-            <div class="card-body">
-              <div class="card-title" title="Portrait.jpg">Portrait.jpg</div>
-              <div class="card-meta">2,6 Mo • 5 août 2025</div>
-              <div class="card-status status-success">
-                <span class="status-dot-green"></span>
-                <span>Transféré</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 6. CV_John.docx -->
-          <div class="file-card" data-id="6" data-category="docs" data-name="CV_John.docx" data-size="842 Ko" data-date="3 août 2025">
-            <div class="card-checkbox">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </div>
-            <button class="card-menu-btn" title="Options"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
-            <div class="card-thumb thumb-icon-doc icon-word">
-              <div class="doc-badge badge-word">W</div>
-            </div>
-            <div class="card-body">
-              <div class="card-title" title="CV_John.docx">CV_John.docx</div>
-              <div class="card-meta">842 Ko • 3 août 2025</div>
-              <div class="card-status status-success">
-                <span class="status-dot-green"></span>
-                <span>Transféré</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 7. Musique_AFRO.mp3 -->
-          <div class="file-card" data-id="7" data-category="audio" data-name="Musique_AFRO.mp3" data-size="7,3 Mo" data-date="1 août 2025">
-            <div class="card-checkbox">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </div>
-            <button class="card-menu-btn" title="Options"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
-            <div class="card-thumb thumb-icon-doc icon-audio">
-              <div class="doc-badge badge-audio">🎵</div>
-            </div>
-            <div class="card-body">
-              <div class="card-title" title="Musique_AFRO.mp3">Musique_AFRO.mp3</div>
-              <div class="card-meta">7,3 Mo • 1 août 2025</div>
-              <div class="card-status status-success">
-                <span class="status-dot-green"></span>
-                <span>Transféré</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 8. Présentation.pptx -->
-          <div class="file-card" data-id="8" data-category="docs" data-name="Présentation.pptx" data-size="4,7 Mo" data-date="31 juil. 2025">
-            <div class="card-checkbox">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </div>
-            <button class="card-menu-btn" title="Options"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
-            <div class="card-thumb thumb-icon-doc icon-ppt">
-              <div class="doc-badge badge-ppt">P</div>
-            </div>
-            <div class="card-body">
-              <div class="card-title" title="Présentation.pptx">Présentation.pptx</div>
-              <div class="card-meta">4,7 Mo • 31 juil. 2025</div>
-              <div class="card-status status-success">
-                <span class="status-dot-green"></span>
-                <span>Transféré</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 9. Conakry.mp4 -->
-          <div class="file-card" data-id="9" data-category="videos" data-name="Conakry.mp4" data-size="18,9 Mo" data-date="28 juil. 2025">
-            <div class="card-checkbox">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </div>
-            <button class="card-menu-btn" title="Options"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
-            <div class="card-thumb thumb-video-2">
-              <div class="gradient-bay"></div>
-              <div class="play-overlay">
-                <svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-              </div>
-              <span class="video-duration">01:42</span>
-            </div>
-            <div class="card-body">
-              <div class="card-title" title="Conakry.mp4">Conakry.mp4</div>
-              <div class="card-meta">18,9 Mo • 28 juil. 2025</div>
-              <div class="card-status status-success">
-                <span class="status-dot-green"></span>
-                <span>Transféré</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 10. Archives.zip -->
-          <div class="file-card" data-id="10" data-category="docs" data-name="Archives.zip" data-size="12,4 Mo" data-date="26 juil. 2025">
-            <div class="card-checkbox">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </div>
-            <button class="card-menu-btn" title="Options"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
-            <div class="card-thumb thumb-icon-doc icon-zip">
-              <div class="doc-badge badge-zip">📦</div>
-            </div>
-            <div class="card-body">
-              <div class="card-title" title="Archives.zip">Archives.zip</div>
-              <div class="card-meta">12,4 Mo • 26 juil. 2025</div>
-              <div class="card-status status-success">
-                <span class="status-dot-green"></span>
-                <span>Transféré</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 11. Budget_2025.xlsx -->
-          <div class="file-card" data-id="11" data-category="docs" data-name="Budget_2025.xlsx" data-size="1,1 Mo" data-date="24 juil. 2025">
-            <div class="card-checkbox">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </div>
-            <button class="card-menu-btn" title="Options"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
-            <div class="card-thumb thumb-icon-doc icon-excel">
-              <div class="doc-badge badge-excel">X</div>
-            </div>
-            <div class="card-body">
-              <div class="card-title" title="Budget_2025.xlsx">Budget_2025.xlsx</div>
-              <div class="card-meta">1,1 Mo • 24 juil. 2025</div>
-              <div class="card-status status-success">
-                <span class="status-dot-green"></span>
-                <span>Transféré</span>
-              </div>
-            </div>
-          </div>
-
+          <h3>Votre bibliothèque PC est vide</h3>
+          <p>Glissez-déposez des fichiers ici ou parcourez votre ordinateur pour ajouter des documents à envoyer.</p>
+          <button class="btn-primary" id="btnEmptyStateAdd">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+            </svg>
+            <span>Ajouter des fichiers</span>
+          </button>
         </div>
+
+        <div class="files-grid" id="filesGrid" style="display: none;"></div>
       </div>
 
       <!-- Barre d'Actions Inférieure (Sélection de fichiers) -->
@@ -469,7 +263,7 @@
         <header class="content-header">
           <div class="header-titles">
             <h1>Presse-papier partagé</h1>
-            <p class="stats-text" id="clipboardStatsText">Synchronisation instantanée avec Samsung Galaxy A54</p>
+            <p class="stats-text" id="clipboardStatsText">Synchronisation instantanée en temps réel</p>
           </div>
 
           <div class="header-actions">
@@ -492,7 +286,7 @@
                 </div>
                 <div>
                   <h3>Envoyer du texte vers le téléphone</h3>
-                  <span class="sub-text">Cible : Samsung Galaxy A54 (Connecté)</span>
+                  <span class="sub-text" id="clipboardTargetSubText">Appareil cible : En attente de connexion</span>
                 </div>
               </div>
               <button class="btn-paste-shortcut" id="btnPasteFromLocal">
@@ -530,34 +324,13 @@
             </div>
 
             <div class="snippets-container" id="snippetsContainer">
-              <!-- Item 1 Récent -->
-              <div class="snippet-item">
-                <div class="snippet-header">
-                  <div class="snippet-source">
-                    <span class="badge-device">Samsung Galaxy A54</span>
-                    <span class="snippet-time">Il y a 2 min</span>
-                  </div>
-                  <button class="btn-copy-snippet" data-copy="https://github.com/bindedouworker-hub/LanceFer">
-                    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" /></svg>
-                    <span>Copier</span>
-                  </button>
-                </div>
-                <div class="snippet-content">https://github.com/bindedouworker-hub/LanceFer</div>
-              </div>
-
-              <!-- Item 2 -->
-              <div class="snippet-item">
-                <div class="snippet-header">
-                  <div class="snippet-source">
-                    <span class="badge-device">Samsung Galaxy A54</span>
-                    <span class="snippet-time">Il y a 28 min</span>
-                  </div>
-                  <button class="btn-copy-snippet" data-copy="Code de sécurité LanceDrop : 842 190">
-                    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" /></svg>
-                    <span>Copier</span>
-                  </button>
-                </div>
-                <div class="snippet-content">Code de sécurité LanceDrop : 842 190</div>
+              <div class="clipboard-empty-state" id="clipboardEmptyState">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                </svg>
+                <h4>Aucun texte partagé</h4>
+                <p>Les textes, liens et notes copiés ou envoyés apparaîtront ici.</p>
               </div>
             </div>
           </div>
@@ -571,19 +344,34 @@
     <aside class="sidebar-right">
       
       <!-- CARTE 1 : Téléphone Connecté -->
-      <section class="panel-card device-card">
+      <section class="panel-card device-card" id="connectedDeviceCard">
         <div class="panel-header">
           <div class="panel-title-with-badge">
             <svg class="phone-icon-header" viewBox="0 0 20 20" fill="#1A73E8">
               <path fill-rule="evenodd" d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zm3 14a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
             </svg>
-            <h3>Téléphone connecté</h3>
-            <span class="green-dot-online"></span>
+            <h3 id="deviceStatusTitle">En attente de connexion</h3>
+            <span class="status-dot-waiting" id="deviceStatusDot"></span>
           </div>
         </div>
 
-        <!-- Boîte Appareil -->
-        <div class="device-box">
+        <!-- Boîte Appareil Non Connecté -->
+        <div class="device-box empty-device-box" id="deviceBoxEmpty">
+          <div class="device-illustration waiting">
+            <svg viewBox="0 0 32 48" fill="none">
+              <rect x="2" y="2" width="28" height="44" rx="5" fill="#F8FAFC" stroke="#94A3B8" stroke-width="2"/>
+              <line x1="11" y1="6" x2="21" y2="6" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="16" cy="40" r="1.5" fill="#94A3B8"/>
+            </svg>
+          </div>
+          <div class="device-details">
+            <span class="device-name">Aucun mobile connecté</span>
+            <span class="device-os">Scannez le QR code ci-dessous</span>
+          </div>
+        </div>
+
+        <!-- Boîte Appareil Connecté (affiché dynamiquement) -->
+        <div class="device-box" id="deviceBoxConnected" style="display: none;">
           <div class="device-illustration">
             <svg viewBox="0 0 32 48" fill="none">
               <rect x="2" y="2" width="28" height="44" rx="5" fill="#E8F0FE" stroke="#1A73E8" stroke-width="2"/>
@@ -592,8 +380,8 @@
             </svg>
           </div>
           <div class="device-details">
-            <span class="device-name">Samsung Galaxy A54</span>
-            <span class="device-os">Android 14</span>
+            <span class="device-name" id="connectedDeviceName">Smartphone</span>
+            <span class="device-os" id="connectedDeviceOs">Android</span>
             <div class="device-badge">
               <svg viewBox="0 0 20 20" fill="#16A34A"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
               <span>Connecté</span>
@@ -601,14 +389,14 @@
           </div>
         </div>
 
-        <!-- Jauge d'Espace Stockage -->
-        <div class="storage-section">
+        <!-- Jauge d'Espace Stockage (affiché si appareil connecté) -->
+        <div class="storage-section" id="storageSection" style="display: none;">
           <div class="storage-labels">
-            <span>Espace disponible</span>
-            <span class="storage-value">124,6 Go / 256 Go</span>
+            <span>Espace mobile disponible</span>
+            <span class="storage-value" id="deviceStorageValue">-- Go</span>
           </div>
           <div class="storage-bar">
-            <div class="storage-fill" style="width: 48.6%;"></div>
+            <div class="storage-fill" id="deviceStorageFill" style="width: 0%;"></div>
           </div>
         </div>
 
@@ -657,7 +445,7 @@
             </svg>
           </div>
           <div class="qr-text-info">
-            <p>Scannez ce QR code pour vous connecter à LanceDrop</p>
+            <p>Scannez ce QR code avec l'application mobile pour vous connecter</p>
             <svg class="info-icon" viewBox="0 0 20 20" fill="#94A3B8">
               <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
             </svg>
@@ -673,7 +461,7 @@
         </button>
       </section>
 
-      <!-- CARTE 2 : Transfert en Cours -->
+      <!-- CARTE 2 : Transfert en Cours & État Vide -->
       <section class="panel-card transfer-card">
         <div class="panel-header">
           <div class="panel-title-with-badge">
@@ -685,51 +473,34 @@
           <a href="#" class="link-all" id="linkViewAllTransfers">Tout voir</a>
         </div>
 
-        <div class="transfer-list">
-          <!-- Item Actif : Voyage_Côte.mp4 -->
-          <div class="transfer-item active-transfer">
+        <!-- État vide des transferts -->
+        <div class="transfer-empty-state" id="transferEmptyState">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <p>Aucun transfert en cours</p>
+        </div>
+
+        <div class="transfer-list" id="transferList" style="display: none;">
+          <!-- Item Actif Dynamique -->
+          <div class="transfer-item active-transfer" id="activeTransferItem">
             <div class="item-thumb-video"></div>
             <div class="item-details">
               <div class="item-header">
-                <span class="item-name">Voyage_Côte.mp4</span>
-                <span class="item-percent" id="transferPercent">65%</span>
+                <span class="item-name" id="activeTransferName">Fichier.dat</span>
+                <span class="item-percent" id="transferPercent">0%</span>
               </div>
               <div class="progress-track">
-                <div class="progress-bar-animated" id="transferProgressBar" style="width: 65%;"></div>
+                <div class="progress-bar-animated" id="transferProgressBar" style="width: 0%;"></div>
               </div>
               <div class="item-footer">
-                <span class="item-speed" id="transferSpeedText">12,4 Mo/s • 8,7 Mo / 28,7 Mo</span>
+                <span class="item-speed" id="transferSpeedText">0 Mo/s • 0 Mo</span>
                 <div class="item-actions">
                   <button class="btn-ctrl" id="btnPauseTransfer" title="Pause">⏸</button>
                   <button class="btn-ctrl" id="btnCancelTransfer" title="Annuler">✕</button>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Item File d'attente 1 : Rapport_Projet.pdf -->
-          <div class="transfer-item queued-item">
-            <div class="item-icon-pdf">
-              <svg viewBox="0 0 20 20" fill="#EF4444"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
-            </div>
-            <div class="item-details">
-              <div class="item-header">
-                <span class="item-name">Rapport_Projet.pdf</span>
-                <button class="btn-ctrl-cancel" title="Retirer">✕</button>
-              </div>
-              <span class="item-wait-status">En attente...</span>
-            </div>
-          </div>
-
-          <!-- Item File d'attente 2 : Forêt.jpg -->
-          <div class="transfer-item queued-item">
-            <div class="item-thumb-forest"></div>
-            <div class="item-details">
-              <div class="item-header">
-                <span class="item-name">Forêt.jpg</span>
-                <button class="btn-ctrl-cancel" title="Retirer">✕</button>
-              </div>
-              <span class="item-wait-status">En attente...</span>
             </div>
           </div>
         </div>
@@ -748,12 +519,12 @@
           <button class="btn-quick-nav-clip" id="btnQuickOpenClipboard">Gérer</button>
         </div>
         <div class="clipboard-quick-body">
-          <div class="clipboard-quick-text" id="quickClipboardTextPreview">
-            https://github.com/bindedouworker-hub/LanceFer
+          <div class="clipboard-quick-text" id="quickClipboardTextPreview" style="color: var(--text-muted); font-style: italic;">
+            Presse-papier partagé vide
           </div>
           <div class="clipboard-quick-footer">
-            <span class="clipboard-quick-meta">Reçu de Galaxy A54</span>
-            <button class="btn-copy-pill" id="btnQuickCopyPill">
+            <span class="clipboard-quick-meta" id="quickClipboardMeta">En attente de texte</span>
+            <button class="btn-copy-pill" id="btnQuickCopyPill" style="display: none;">
               <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" /></svg>
               <span id="quickCopyPillText">Copier</span>
             </button>

@@ -1,4 +1,4 @@
-name: FastDrop Automated Build & Release
+name: LanceDrop Automated Build & Release
 
 on:
   push:
@@ -39,7 +39,7 @@ jobs:
           if-no-files-found: warn
 
   # ─────────────────────────────────────────────
-  # JOB 2 — Build Android APK (Release non signé)
+  # JOB 2 — Build Android APK (Release)
   # ─────────────────────────────────────────────
   build-android:
     name: Build Android Application (.apk)
@@ -112,21 +112,21 @@ jobs:
         with:
           files: release-files/**
           tag_name: ${{ github.ref_name }}
-          name: FastDrop ${{ github.ref_name }} — Release Officielle
+          name: LanceDrop ${{ github.ref_name }} — Release Officielle
           body: |
-            ## ⚡ FastDrop ${{ github.ref_name }}
+            ## ⚡ LanceDrop ${{ github.ref_name }}
 
             Transfert direct ultra-rapide de fichiers entre Android et Windows — réseau local, sans cloud.
 
             ### 📥 Téléchargements
             | Plateforme | Fichier | Description |
             |---|---|---|
-            | 🪟 Windows | `FastDrop-Setup-*.exe` | Installateur Windows 10/11 (64-bit) |
-            | 🤖 Android | `FastDrop*.apk` | APK pour Android 8+ (SAF, Zero-Permission) |
+            | 🪟 Windows | `LanceDrop-Setup-*.exe` / `LanceDrop-*.exe` | Installateur & Portable Windows 10/11 (64-bit) |
+            | 🤖 Android | `LanceDrop*.apk` | APK pour Android 8+ (SAF, Zero-Permission) |
 
             ### 📱 QR Code Android
             Scannez pour installer directement sur mobile :
-            ![QR Code](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/bindedouworker-hub/LanceFer/releases/latest/download/FastDrop.apk)
+            ![QR Code](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/bindedouworker-hub/LanceFer/releases/latest/download/LanceDrop.apk)
 
             ---
             *Construit automatiquement par LanceFer Software Factory 🏭*

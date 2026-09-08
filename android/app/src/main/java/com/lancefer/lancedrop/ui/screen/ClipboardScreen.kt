@@ -48,29 +48,7 @@ fun ClipboardScreen(
     var inputText by remember { mutableStateOf("") }
 
     val snippets = remember {
-        mutableStateListOf(
-            ClipboardSnippet(
-                id = "1",
-                text = "https://github.com/bindedouworker-hub/LanceFer",
-                sender = "PC-Bureau-Jean (Windows 11)",
-                timeAgo = "Il y a 5 min",
-                isIncoming = true
-            ),
-            ClipboardSnippet(
-                id = "2",
-                text = "Code PIN d'appairage : 842 190",
-                sender = "PC-Bureau-Jean (Windows 11)",
-                timeAgo = "Il y a 25 min",
-                isIncoming = true
-            ),
-            ClipboardSnippet(
-                id = "3",
-                text = "Réunion de synthèse LanceDrop prévue à 15h30 sur Google Meet",
-                sender = "Samsung Galaxy A54",
-                timeAgo = "Il y a 1 heure",
-                isIncoming = false
-            )
-        )
+        mutableStateListOf<ClipboardSnippet>()
     }
 
     Scaffold(
@@ -85,7 +63,7 @@ fun ClipboardScreen(
                             color = LanceDropTextMainLight
                         )
                         Text(
-                            text = "Synchronisé avec PC-Bureau-Jean",
+                            text = "Synchronisation instantanée",
                             fontSize = 11.sp,
                             color = LanceDropGreen,
                             fontWeight = FontWeight.SemiBold
@@ -231,7 +209,7 @@ fun ClipboardScreen(
                                         val newSnippet = ClipboardSnippet(
                                             id = System.currentTimeMillis().toString(),
                                             text = inputText,
-                                            sender = "Samsung Galaxy A54",
+                                            sender = android.os.Build.MODEL,
                                             timeAgo = "À l'instant",
                                             isIncoming = false
                                         )
@@ -284,12 +262,60 @@ fun ClipboardScreen(
             }
 
             // ─────────────────────────────────────────────────────────────
-            // 3. LISTE DES SNIPPETS
+            // 3. LISTE DES SNIPPETS OU ÉTAT VIDE
             // ─────────────────────────────────────────────────────────────
-            items(snippets, key = { it.id }) { snippet ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+            if (snippets.isEmpty()) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = LanceDropCardLight),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(28.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFF1F5F9)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.ContentPaste,
+                                    contentDescription = null,
+                                    tint = LanceDropTextMutedLight,
+                                    modifier = Modifier.size(26.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Aucun texte partagé",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = LanceDropTextMainLight
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Copiez du texte sur cet appareil ou envoyez-en un depuis votre ordinateur connecté pour le voir apparaître instantanément.",
+                                fontSize = 12.sp,
+                                color = LanceDropTextMutedLight,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                lineHeight = 16.sp
+                            )
+                        }
+                    }
+                }
+            } else {
+                items(snippets, key = { it.id }) { snippet ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = LanceDropCardLight),
                     elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
@@ -369,10 +395,11 @@ fun ClipboardScreen(
                     }
                 }
             }
+        }
 
-            item {
-                Spacer(modifier = Modifier.height(20.dp))
-            }
+        item {
+            Spacer(modifier = Modifier.height(20.dp))
+        }
         }
     }
 }

@@ -1742,3 +1742,126 @@ body {
   width: 13px;
   height: 13px;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   EMPTY STATES (Bibliothèque, Appareils, Transferts, Presse-papier)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.empty-state-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 30px;
+  background: #FFFFFF;
+  border: 2px dashed #CBD5E1;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  margin-top: 10px;
+  transition: all var(--transition-normal);
+}
+
+.empty-state-card.drag-over {
+  border-color: var(--blue-primary);
+  background: var(--blue-light);
+}
+
+.empty-state-icon-wrapper {
+  margin-bottom: 16px;
+}
+
+.empty-state-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.empty-state-card p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  max-width: 440px;
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+
+.status-dot-waiting {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #F59E0B;
+  animation: pulseWaiting 1.8s infinite ease-in-out;
+}
+
+@keyframes pulseWaiting {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.6; }
+}
+
+.empty-device-box {
+  background: #F8FAFC !important;
+  border: 1px dashed #CBD5E1 !important;
+}
+
+.device-illustration.waiting svg rect {
+  stroke-dasharray: 4 3;
+}
+
+.transfer-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 16px;
+  background: #F8FAFC;
+  border-radius: var(--radius-md);
+  border: 1px dashed #E2E8F0;
+  text-align: center;
+}
+
+.transfer-empty-state svg {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 8px;
+  color: #94A3B8;
+}
+
+.transfer-empty-state p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.clipboard-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: #FFFFFF;
+  border-radius: var(--radius-md);
+  border: 1px dashed #CBD5E1;
+  text-align: center;
+}
+
+.clipboard-empty-state svg {
+  width: 36px;
+  height: 36px;
+  color: #94A3B8;
+  margin-bottom: 12px;
+}
+
+.clipboard-empty-state h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.clipboard-empty-state p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
