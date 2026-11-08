@@ -45,3 +45,14 @@ PROJECT.md
 TEST_INFRA.md
 TEST_READY.md
 lancer_desktop.bat
+
+# Fichiers locaux personnels (chemins machine, ne jamais publier)
+android/local.properties
+android/build_android.bat
+
+# Manuscrits internes de la factory (conservés hors ligne)
+loops1.md
+LOOP V2*.md
+LOOP V3*.md
+PROGRAMME LANCEFER*.md
+agents_system_lancefer*.md
