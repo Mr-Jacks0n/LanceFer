@@ -53,8 +53,13 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      # Commandes SDK préinstallées sur les runners GitHub ; on accepte
+      # simplement les licences (sdkmanager 16 demande une confirmation
+      # interactive que l'action ne gère plus — cause du bug v0.2.0).
+      - name: Accept Android SDK licenses & ensure platform 34
+        run: |
+          echo "y" | sdkmanager --licenses > /dev/null || yes | sdkmanager --licenses > /dev/null
+          yes | sdkmanager "platforms;android-34" "build-tools;34.0.0" > /dev/null
 
       # gradle/actions/setup-gradle installe Gradle directement — pas besoin du gradlew wrapper JAR
       - name: Set up Gradle 8.7
@@ -87,7 +92,7 @@ jobs:
     name: Publish Public GitHub Release
     needs: [build-windows, build-android]
     runs-on: ubuntu-latest
-    if: always()    # Publier même si un job de build échoue partiellement
+    # (plus de `if: always()` : ne pas publier une release sans artefacts)
 
     steps:
       - name: Download Windows Installer
