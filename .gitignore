@@ -28,3 +28,20 @@ android/local.properties
 # IDE
 .idea/
 *.iml
+
+# Mémoire & artefacts de la LanceFer Software Factory (sessions locales)
+.lancefer/
+.agents/
+dist/
+tmp/
+build_output/
+.thumbnail_cache/
+.lancedrop_shares.json
+.lancefer_checkpoints.json
+
+# Affichages manuels & fichiers de travail de session
+ORIGINAL_REQUEST.md
+PROJECT.md
+TEST_INFRA.md
+TEST_READY.md
+lancer_desktop.bat
