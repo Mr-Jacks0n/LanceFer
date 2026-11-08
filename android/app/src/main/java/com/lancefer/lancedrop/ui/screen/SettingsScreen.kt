@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,13 +28,24 @@ import com.lancefer.lancedrop.ui.theme.*
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    themeMode: String = "AUTO",
+    onThemeModeChange: (String) -> Unit = {},
+    soundEnabled: Boolean = true,
+    onSoundEnabledChange: (Boolean) -> Unit = {},
+    conflictResolution: String = "RENAME",
+    onConflictResolutionChange: (String) -> Unit = {},
+    onClearHistory: () -> Unit = {}
 ) {
     var multiStreamEnabled by remember { mutableStateOf(true) }
     var backgroundServiceEnabled by remember { mutableStateOf(true) }
     var autoAcceptContacts by remember { mutableStateOf(false) }
     var pinRequired by remember { mutableStateOf(true) }
-    var darkModeEnabled by remember { mutableStateOf(false) }
+    var darkModeEnabled by remember(themeMode) { mutableStateOf(themeMode == "DARK") }
+
+    val context = LocalContext.current
+    val deviceInfo = remember { com.lancefer.lancedrop.utils.DeviceMetadataHelper.getDeviceInfo(context) }
+    val storageMetrics = remember { com.lancefer.lancedrop.utils.DeviceMetadataHelper.getStorageMetrics() }
 
     Scaffold(
         topBar = {
@@ -43,7 +55,7 @@ fun SettingsScreen(
                         text = "Paramètres",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = LanceDropTextMainLight
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
@@ -51,14 +63,14 @@ fun SettingsScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Retour",
-                            tint = LanceDropTextMainLight
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = LanceDropBgLight)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
-        containerColor = LanceDropBgLight
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -68,13 +80,13 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // ─────────────────────────────────────────────────────────────
-            // 1. CARTE PROFIL UTILISATEUR (John D.)
+            // 1. CARTE PROFIL APPAREIL LOCAL AUTHENTIQUE
             // ─────────────────────────────────────────────────────────────
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = LanceDropCardLight),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Row(
@@ -84,7 +96,8 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        // Avatar Initiales
+                        // Avatar Initiales Appareil
+                        val deviceInitial = deviceInfo.fullDisplayName.firstOrNull()?.uppercaseChar()?.toString() ?: "L"
                         Box(
                             modifier = Modifier
                                 .size(54.dp)
@@ -93,7 +106,7 @@ fun SettingsScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "JD",
+                                text = deviceInitial,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Color.White
@@ -102,27 +115,23 @@ fun SettingsScreen(
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "John D.",
+                                text = deviceInfo.fullDisplayName,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = LanceDropTextMainLight
                             )
                             Text(
-                                text = "john.d@gmail.com",
+                                text = "${deviceInfo.manufacturer} • ${deviceInfo.deviceName}",
                                 fontSize = 13.sp,
                                 color = LanceDropTextMutedLight
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Samsung Galaxy A54 5G",
+                                text = "Android ${deviceInfo.androidVersion} (API ${deviceInfo.sdkInt}) • Prêt",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = LanceDropBlue
                             )
-                        }
-
-                        IconButton(onClick = {}) {
-                            Icon(Icons.Default.Edit, contentDescription = "Éditer", tint = LanceDropTextMutedLight)
                         }
                     }
                 }
@@ -146,7 +155,7 @@ fun SettingsScreen(
                         SettingsClickableRow(
                             icon = Icons.Default.Smartphone,
                             title = "Nom de l'appareil",
-                            subtitle = "Samsung Galaxy A54",
+                            subtitle = deviceInfo.deviceName,
                             onClick = {}
                         )
                         HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
@@ -156,6 +165,36 @@ fun SettingsScreen(
                             subtitle = "/Stockage/Download/LanceDrop/",
                             onClick = {}
                         )
+                    }
+                }
+            }
+
+            // ─────────────────────────────────────────────────────────────
+            // 2b. SPÉCIFICATIONS MATÉRIELLES COMPLÈTES (Zéro Donnée Fictive)
+            // ─────────────────────────────────────────────────────────────
+            item {
+                SettingsSectionHeader(title = "Spécifications du Téléphone")
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = LanceDropCardLight),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                        DeviceSpecRow("Marque / Constructeur", deviceInfo.manufacturer)
+                        HorizontalDivider(color = Color(0xFFF8FAFC), modifier = Modifier.padding(vertical = 6.dp))
+                        DeviceSpecRow("Modèle", deviceInfo.model)
+                        HorizontalDivider(color = Color(0xFFF8FAFC), modifier = Modifier.padding(vertical = 6.dp))
+                        DeviceSpecRow("Code Série / Carte", "${deviceInfo.deviceCodename} (${deviceInfo.board})")
+                        HorizontalDivider(color = Color(0xFFF8FAFC), modifier = Modifier.padding(vertical = 6.dp))
+                        DeviceSpecRow("Version Android", "Android ${deviceInfo.androidVersion} (API ${deviceInfo.sdkInt})")
+                        HorizontalDivider(color = Color(0xFFF8FAFC), modifier = Modifier.padding(vertical = 6.dp))
+                        DeviceSpecRow("Numéro de Build", deviceInfo.buildNumber)
+                        HorizontalDivider(color = Color(0xFFF8FAFC), modifier = Modifier.padding(vertical = 6.dp))
+                        DeviceSpecRow("Stockage Réel", "${storageMetrics.totalFormatted} (${storageMetrics.freeFormatted} libres)")
                     }
                 }
             }
@@ -189,6 +228,34 @@ fun SettingsScreen(
                             subtitle = "Maintient le service actif écran éteint",
                             checked = backgroundServiceEnabled,
                             onCheckedChange = { backgroundServiceEnabled = it }
+                        )
+                        HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
+                        SettingsClickableRow(
+                            icon = Icons.Default.ContentCopy,
+                            title = "Gestion des doublons",
+                            subtitle = when (conflictResolution) {
+                                "PROMPT" -> "Demander confirmation à chaque fois"
+                                "RENAME" -> "Conserver les deux (Renommer)"
+                                "OVERWRITE" -> "Écraser les fichiers existants"
+                                else -> "Ignorer les doublons (Passer)"
+                            },
+                            onClick = {
+                                val next = when (conflictResolution) {
+                                    "PROMPT" -> "RENAME"
+                                    "RENAME" -> "OVERWRITE"
+                                    "OVERWRITE" -> "SKIP"
+                                    else -> "PROMPT"
+                                }
+                                onConflictResolutionChange(next)
+                            }
+                        )
+                        HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
+                        SettingsToggleRow(
+                            icon = Icons.Default.VolumeUp,
+                            title = "Sons & Carillons",
+                            subtitle = "Tonalités de succès, d'appairage et d'alerte",
+                            checked = soundEnabled,
+                            onCheckedChange = onSoundEnabledChange
                         )
                         HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
                         SettingsClickableRow(
@@ -252,10 +319,20 @@ fun SettingsScreen(
                     Column(modifier = Modifier.padding(vertical = 4.dp)) {
                         SettingsToggleRow(
                             icon = Icons.Default.DarkMode,
-                            title = "Thème sombre",
-                            subtitle = "Adoucit l'affichage la nuit",
+                            title = "Thème sombre Cyber Slate",
+                            subtitle = if (darkModeEnabled) "Palette Cyber Slate & Electric Blue active" else "Mode clair actif",
                             checked = darkModeEnabled,
-                            onCheckedChange = { darkModeEnabled = it }
+                            onCheckedChange = {
+                                darkModeEnabled = it
+                                onThemeModeChange(if (it) "DARK" else "LIGHT")
+                            }
+                        )
+                        HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
+                        SettingsClickableRow(
+                            icon = Icons.Default.DeleteSweep,
+                            title = "Historique des transferts",
+                            subtitle = "Effacer l'historique local et libérer l'espace",
+                            onClick = onClearHistory
                         )
                         HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
                         SettingsClickableRow(
@@ -415,3 +492,31 @@ private fun SettingsToggleRow(
         )
     }
 }
+
+@Composable
+private fun DeviceSpecRow(
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontSize = 13.sp,
+            color = LanceDropTextMutedLight,
+            fontWeight = FontWeight.Medium
+        )
+        Text(
+            text = value,
+            fontSize = 13.sp,
+            color = LanceDropTextMainLight,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+

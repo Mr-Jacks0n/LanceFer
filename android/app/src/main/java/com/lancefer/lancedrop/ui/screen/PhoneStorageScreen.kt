@@ -34,12 +34,10 @@ fun PhoneStorageScreen(
     onCategoryClick: (category: String) -> Unit
 ) {
     val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsState()
     val storageInfo = remember { viewModel.getRealStorageInfo() }
-    val deviceName = remember {
-        val model = android.os.Build.MODEL
-        val manufacturer = android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
-        if (model.startsWith(manufacturer, ignoreCase = true)) model else "$manufacturer $model"
-    }
+    val deviceInfo = remember { com.lancefer.lancedrop.utils.DeviceMetadataHelper.getDeviceInfo(context) }
+    val mediaStats = uiState.mediaStats
 
     var isCleaned by remember { mutableStateOf(false) }
 
@@ -51,7 +49,7 @@ fun PhoneStorageScreen(
                         text = "Stockage de l'appareil",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = LanceDropTextMainLight
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
@@ -59,14 +57,14 @@ fun PhoneStorageScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Retour",
-                            tint = LanceDropTextMainLight
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = LanceDropBgLight)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
-        containerColor = LanceDropBgLight
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -82,7 +80,7 @@ fun PhoneStorageScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = LanceDropCardLight),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
@@ -172,7 +170,7 @@ fun PhoneStorageScreen(
                                 color = LanceDropGreen
                             )
                             Text(
-                                text = deviceName,
+                                text = "${deviceInfo.manufacturer} ${deviceInfo.model} • Android ${deviceInfo.androidVersion}",
                                 fontSize = 12.sp,
                                 color = LanceDropTextMutedLight
                             )
@@ -272,42 +270,50 @@ fun PhoneStorageScreen(
                     Column(
                         modifier = Modifier.padding(vertical = 6.dp)
                     ) {
+                        val imgStats = mediaStats["Images"]
+                        val imgText = if (imgStats != null && imgStats.count > 0) "${imgStats.count} photo${if (imgStats.count > 1) "s" else ""} • ${imgStats.formattedSize}" else "Parcourir les photos de l'appareil"
                         StorageCategoryRow(
                             icon = Icons.Default.Image,
                             iconColor = Color(0xFF3B82F6),
                             bgColor = Color(0xFFEFF6FF),
                             title = "Images & Photos",
-                            details = "Parcourir les photos de l'appareil",
+                            details = imgText,
                             onClick = { onCategoryClick("Images") }
                         )
                         HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
 
+                        val vidStats = mediaStats["Vidéos"]
+                        val vidText = if (vidStats != null && vidStats.count > 0) "${vidStats.count} vidéo${if (vidStats.count > 1) "s" else ""} • ${vidStats.formattedSize}" else "Parcourir les vidéos de l'appareil"
                         StorageCategoryRow(
                             icon = Icons.Default.Movie,
                             iconColor = Color(0xFF8B5CF6),
                             bgColor = Color(0xFFF5F3FF),
                             title = "Vidéos",
-                            details = "Parcourir les vidéos de l'appareil",
+                            details = vidText,
                             onClick = { onCategoryClick("Vidéos") }
                         )
                         HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
 
+                        val docStats = mediaStats["Documents"]
+                        val docText = if (docStats != null && docStats.count > 0) "${docStats.count} document${if (docStats.count > 1) "s" else ""} • ${docStats.formattedSize}" else "Parcourir les documents et rapports"
                         StorageCategoryRow(
                             icon = Icons.Default.Description,
                             iconColor = Color(0xFFF59E0B),
                             bgColor = Color(0xFFFFFBEB),
                             title = "Documents & Fichiers PDF",
-                            details = "Parcourir les documents et rapports",
+                            details = docText,
                             onClick = { onCategoryClick("Documents") }
                         )
                         HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))
 
+                        val audStats = mediaStats["Audio"]
+                        val audText = if (audStats != null && audStats.count > 0) "${audStats.count} fichier${if (audStats.count > 1) "s" else ""} audio • ${audStats.formattedSize}" else "Parcourir les fichiers audio"
                         StorageCategoryRow(
                             icon = Icons.Default.MusicNote,
                             iconColor = Color(0xFF10B981),
                             bgColor = Color(0xFFECFDF5),
                             title = "Audio & Musique",
-                            details = "Parcourir les fichiers audio",
+                            details = audText,
                             onClick = { onCategoryClick("Audio") }
                         )
                         HorizontalDivider(color = Color(0xFFF1F5F9), modifier = Modifier.padding(horizontal = 16.dp))

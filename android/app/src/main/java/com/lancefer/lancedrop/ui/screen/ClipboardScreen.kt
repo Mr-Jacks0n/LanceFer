@@ -60,7 +60,7 @@ fun ClipboardScreen(
                             text = "Presse-papier partagé",
                             fontWeight = FontWeight.Bold,
                             fontSize = 19.sp,
-                            color = LanceDropTextMainLight
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "Synchronisation instantanée",
@@ -75,14 +75,14 @@ fun ClipboardScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Retour",
-                            tint = LanceDropTextMainLight
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = LanceDropBgLight)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
-        containerColor = LanceDropBgLight
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         LazyColumn(
             modifier = Modifier

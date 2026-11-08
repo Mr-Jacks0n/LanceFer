@@ -1,4 +1,4 @@
-﻿plugins {
+plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
@@ -60,6 +60,19 @@ dependencies {
 
     // ZXing for QR Code Generation
     implementation("com.google.zxing:core:3.5.3")
+
+    // AndroidX Media3 (ExoPlayer & Streaming HTTP Range RFC 7233)
+    implementation("androidx.media3:media3-exoplayer:1.4.1")
+    implementation("androidx.media3:media3-ui:1.4.1")
+
+    // Coil Compose (HD Photo Viewer & Cached Thumbnails)
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
+    // OkHttp (HTTP Client for REST API & Streaming)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20231013")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

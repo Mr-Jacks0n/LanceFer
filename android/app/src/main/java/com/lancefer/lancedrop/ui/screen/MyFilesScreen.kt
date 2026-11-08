@@ -27,10 +27,13 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import com.lancefer.lancedrop.util.MediaStoreHelper
 import com.lancefer.lancedrop.utils.FileHelper
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+import com.lancefer.lancedrop.ui.viewmodel.MainViewModel
 
 data class MobileFileItem(
     val id: String,
@@ -47,7 +50,8 @@ data class MobileFileItem(
 @Composable
 fun MyFilesScreen(
     initialCategory: String? = null,
-    onNavigateToPreview: (fileName: String) -> Unit,
+    viewModel: MainViewModel? = null,
+    onNavigateToPreview: (fileName: String, fileUri: android.net.Uri?, fileSize: String, fileDate: String) -> Unit,
     onNavigateToTransfers: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
@@ -55,10 +59,30 @@ fun MyFilesScreen(
     var searchQuery by remember { mutableStateOf("") }
     val selectedFileIds = remember { mutableStateListOf<String>() }
     var showSuccessToast by remember { mutableStateOf(false) }
+    var showTargetDeviceDialog by remember { mutableStateOf(false) }
+    val uiState = viewModel?.uiState?.collectAsState()?.value
     val context = LocalContext.current
 
-    // Liste réelle de fichiers sélectionnés par l'utilisateur
+    // Liste réelle de fichiers
     val realFiles = remember { mutableStateListOf<MobileFileItem>() }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { perms ->
+        if (perms.values.any { it }) {
+            val media = MediaStoreHelper.queryRealMediaFiles(context, selectedCategory)
+            realFiles.clear()
+            realFiles.addAll(media)
+        }
+    }
+
+    LaunchedEffect(selectedCategory) {
+        if (MediaStoreHelper.hasStoragePermission(context)) {
+            val media = MediaStoreHelper.queryRealMediaFiles(context, selectedCategory)
+            realFiles.clear()
+            realFiles.addAll(media)
+        }
+    }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
@@ -67,7 +91,7 @@ fun MyFilesScreen(
             val info = FileHelper.getFileInfoFromUri(context, uri)
             val name = info?.name ?: "Fichier_${System.currentTimeMillis()}"
             val size = info?.size ?: 0L
-            val sizeFormatted = String.format(Locale.FRANCE, "%.1f Mo", size.toDouble() / (1024.0 * 1024.0))
+            val sizeFormatted = FileHelper.formatFileSize(size)
             val dateFormatted = SimpleDateFormat("d MMM yyyy", Locale.FRANCE).format(Date())
 
             val cat = when {
@@ -129,7 +153,7 @@ fun MyFilesScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(LanceDropCardLight)
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -139,20 +163,20 @@ fun MyFilesScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         IconButton(onClick = { selectedFileIds.clear() }) {
-                            Icon(Icons.Default.Close, contentDescription = "Annuler", tint = LanceDropTextMainLight)
+                            Icon(Icons.Default.Close, contentDescription = "Annuler", tint = MaterialTheme.colorScheme.onSurface)
                         }
                         Text(
                             "${selectedFileIds.size} sélectionnés",
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
-                            color = LanceDropTextMainLight
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         IconButton(onClick = {}) { Icon(Icons.Default.DeleteOutline, contentDescription = null, tint = LanceDropRed) }
-                        IconButton(onClick = {}) { Icon(Icons.Default.DriveFileMove, contentDescription = null, tint = LanceDropTextMutedLight) }
-                        IconButton(onClick = {}) { Icon(Icons.Default.Share, contentDescription = null, tint = LanceDropTextMutedLight) }
+                        IconButton(onClick = {}) { Icon(Icons.Default.DriveFileMove, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        IconButton(onClick = {}) { Icon(Icons.Default.Share, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
                 }
             } else {
@@ -165,9 +189,9 @@ fun MyFilesScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Retour", tint = LanceDropTextMainLight)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Retour", tint = MaterialTheme.colorScheme.onSurface)
                     }
-                    Text("Mes fichiers", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LanceDropTextMainLight)
+                    Text("Mes fichiers", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -176,7 +200,7 @@ fun MyFilesScreen(
                             Icon(Icons.Default.Add, contentDescription = "Ajouter", tint = LanceDropBlue)
                         }
                         IconButton(onClick = {}) {
-                            Icon(Icons.Default.Sort, contentDescription = "Trier", tint = LanceDropTextMainLight)
+                            Icon(Icons.Default.Sort, contentDescription = "Trier", tint = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
@@ -186,8 +210,7 @@ fun MyFilesScreen(
             if (!isSelectionMode) {
                 ExtendedFloatingActionButton(
                     onClick = {
-                        // Ajouter une sélection factice pour tester
-                        selectedFileIds.addAll(listOf("1", "2", "3"))
+                        filePickerLauncher.launch("*/*")
                     },
                     containerColor = LanceDropBlue,
                     contentColor = Color.White,
@@ -201,14 +224,13 @@ fun MyFilesScreen(
             if (isSelectionMode) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    color = LanceDropCardLight,
+                    color = MaterialTheme.colorScheme.surface,
                     shadowElevation = 8.dp
                 ) {
                     Box(modifier = Modifier.padding(16.dp)) {
                         Button(
                             onClick = {
-                                selectedFileIds.clear()
-                                showSuccessToast = true
+                                showTargetDeviceDialog = true
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -216,14 +238,119 @@ fun MyFilesScreen(
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = LanceDropBlue)
                         ) {
-                            Text("Envoyer (33,1 Mo)", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text("Transférer ${selectedFileIds.size} fichier(s) sélectionné(s)", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
                 }
             }
         },
-        containerColor = LanceDropBgLight
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
+        if (showTargetDeviceDialog) {
+            val peers = uiState?.discoveredPeers ?: emptyList()
+            AlertDialog(
+                onDismissRequest = { showTargetDeviceDialog = false },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Default.Devices, contentDescription = null, tint = LanceDropBlue)
+                        Text("Choisir l'appareil destinataire", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    }
+                },
+                text = {
+                    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "Sélectionnez l'ordinateur ou le smartphone vers lequel envoyer les fichiers :",
+                            fontSize = 13.sp,
+                            color = Color(0xFF64748B)
+                        )
+
+                        if (peers.isEmpty()) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("Recherche d'appareils sur le Wi-Fi local...", fontSize = 12.sp, color = Color(0xFF64748B), textAlign = TextAlign.Center)
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    Button(
+                                        onClick = {
+                                            // Ajouter un PC local par défaut
+                                            val defaultIp = "192.168.1.34"
+                                            viewModel?.addManualPeer(defaultIp, 42420, "PC-Salon (Wi-Fi)")
+                                        },
+                                        shape = RoundedCornerShape(8.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = LanceDropBlue)
+                                    ) {
+                                        Text("Associer PC-Salon localement", fontSize = 12.sp)
+                                    }
+                                }
+                            }
+                        } else {
+                            peers.forEach { peer ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            showTargetDeviceDialog = false
+                                            viewModel?.setSelectedPeerForTransfer(peer)
+                                            val filesToSend = realFiles.filter { it.id in selectedFileIds }
+                                            val firstFile = filesToSend.firstOrNull()
+                                            val fileName = firstFile?.name ?: "Fichier_selectionne.dat"
+                                            viewModel?.startFileTransferFromUri(
+                                                peer = peer,
+                                                uri = android.net.Uri.EMPTY,
+                                                fileName = fileName,
+                                                fileSize = 15_400_000L
+                                            )
+                                            selectedFileIds.clear()
+                                            onNavigateToTransfers()
+                                        },
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F5F9)),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                            val isWindows = peer.osType == com.lancefer.lancedrop.model.OsType.WINDOWS
+                                            Icon(
+                                                if (isWindows) Icons.Default.Laptop else Icons.Default.Smartphone,
+                                                contentDescription = null,
+                                                tint = LanceDropBlue,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                            Column {
+                                                Text(peer.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF0F172A))
+                                                Text("${peer.ipAddress}:${peer.port}", fontSize = 11.sp, color = Color(0xFF64748B))
+                                            }
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(CircleShape)
+                                                .background(LanceDropBlueLight)
+                                                .padding(horizontal = 10.dp, vertical = 5.dp)
+                                        ) {
+                                            Text("Envoyer", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = LanceDropBlue)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { showTargetDeviceDialog = false }) {
+                        Text("Annuler", color = Color(0xFF64748B))
+                    }
+                }
+            )
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -260,7 +387,7 @@ fun MyFilesScreen(
                         .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf("Tous", "Images", "Vidéos", "Documents").forEach { cat ->
+                    listOf("Tous", "Images", "Vidéos", "Audio", "Documents").forEach { cat ->
                         FilterChip(
                             selected = selectedCategory == cat,
                             onClick = { selectedCategory = cat },
@@ -269,8 +396,8 @@ fun MyFilesScreen(
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = LanceDropBlue,
                                 selectedLabelColor = Color.White,
-                                containerColor = Color.White,
-                                labelColor = LanceDropTextMutedLight
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                     }
@@ -278,7 +405,7 @@ fun MyFilesScreen(
 
                 // Grille de Fichiers
             if (realFiles.isEmpty()) {
-                // ÉTAT VIDE : AUCUN FICHIER CHOISI
+                val hasPerm = MediaStoreHelper.hasStoragePermission(context)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -307,7 +434,7 @@ fun MyFilesScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Text(
-                            text = "Votre explorateur est vide",
+                            text = if (hasPerm) "Votre explorateur est vide" else "Autorisation des fichiers requise",
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
                             color = LanceDropTextMainLight
@@ -316,7 +443,10 @@ fun MyFilesScreen(
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
-                            text = "Sélectionnez les vrais fichiers de votre appareil (photos, vidéos, documents) pour préparer un transfert.",
+                            text = if (hasPerm)
+                                "Sélectionnez des fichiers réels sur votre appareil (photos, vidéos, documents) pour préparer un transfert."
+                            else
+                                "Pour accéder directement à vos photos, vidéos et musiques, autorisez l'accès ou parcourez l'appareil via le gestionnaire système.",
                             fontSize = 13.sp,
                             color = LanceDropTextMutedLight,
                             textAlign = TextAlign.Center,
@@ -325,17 +455,36 @@ fun MyFilesScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        Button(
+                        if (!hasPerm) {
+                            Button(
+                                onClick = { permissionLauncher.launch(MediaStoreHelper.getRequiredStoragePermissions()) },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = LanceDropBlue)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(Icons.Default.Security, contentDescription = null, tint = Color.White)
+                                    Text("Autoriser l'accès aux médias", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+
+                        OutlinedButton(
                             onClick = { filePickerLauncher.launch("*/*") },
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = LanceDropBlue)
+                            border = androidx.compose.foundation.BorderStroke(1.5.dp, LanceDropBlue),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = LanceDropBlue)
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
-                                Text("Parcourir l'appareil", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Icon(Icons.Default.Add, contentDescription = null, tint = LanceDropBlue)
+                                Text("Parcourir avec l'explorateur", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             }
                         }
                     }
@@ -379,11 +528,12 @@ fun MyFilesScreen(
                                     if (isSelectionMode) {
                                         if (isSelected) selectedFileIds.remove(file.id) else selectedFileIds.add(file.id)
                                     } else {
-                                        onNavigateToPreview(file.name)
+                                        val parsedUri = try { android.net.Uri.parse(file.id) } catch (_: Exception) { null }
+                                        onNavigateToPreview(file.name, parsedUri, file.size, file.date)
                                     }
                                 },
                             shape = RoundedCornerShape(14.dp),
-                            colors = CardDefaults.cardColors(containerColor = LanceDropCardLight),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                             border = if (isSelected) androidx.compose.foundation.BorderStroke(2.dp, LanceDropBlue) else null,
                             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                         ) {
@@ -403,6 +553,23 @@ fun MyFilesScreen(
                                         modifier = Modifier.size(36.dp)
                                     )
 
+                                    // Badge catégorie de fichier en haut à droite
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(6.dp)
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(file.iconColor.copy(alpha = 0.85f))
+                                            .padding(horizontal = 5.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = file.category,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
+
                                     // Checkbox si sélection
                                     if (isSelectionMode) {
                                         Checkbox(
@@ -421,14 +588,14 @@ fun MyFilesScreen(
                                     file.name,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = LanceDropTextMainLight,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     "${file.size} • ${file.date}",
                                     fontSize = 10.sp,
-                                    color = LanceDropTextMutedLight
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }

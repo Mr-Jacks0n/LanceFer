@@ -15,13 +15,18 @@ import kotlinx.coroutines.flow.update
 
 class NsdDiscoveryManager(private val context: Context) {
 
-    private val nsdManager: NsdManager = context.getSystemService(Context.NSD_SERVICE) as NsdManager
+    private val nsdManager: NsdManager? = try {
+        context.getSystemService(Context.NSD_SERVICE) as? NsdManager
+    } catch (_: Exception) {
+        null
+    }
     private var multicastLock: WifiManager.MulticastLock? = null
 
     private val _peers = MutableStateFlow<List<DiscoveredPeer>>(emptyList())
     val peers: StateFlow<List<DiscoveredPeer>> = _peers.asStateFlow()
 
     private var discoveryListener: NsdManager.DiscoveryListener? = null
+    private var registeredServiceName: String? = null
 
     companion object {
         private const val TAG = "NsdDiscoveryManager"
@@ -39,7 +44,12 @@ class NsdDiscoveryManager(private val context: Context) {
             }
 
             override fun onServiceFound(serviceInfo: NsdServiceInfo) {
-                Log.d(TAG, "Service trouvé : ${serviceInfo.serviceName}")
+                val sName = serviceInfo.serviceName ?: ""
+                Log.d(TAG, "Service trouvé : $sName")
+                if (sName == registeredServiceName || sName.startsWith(SERVICE_NAME_PREFIX)) {
+                    Log.d(TAG, "Service auto-détecté ignoré (onServiceFound) : $sName")
+                    return
+                }
                 if (serviceInfo.serviceType.contains("lancedrop") || serviceInfo.serviceType.contains("fastdrop")) {
                     resolveService(serviceInfo)
                 }
@@ -67,7 +77,7 @@ class NsdDiscoveryManager(private val context: Context) {
         }
 
         try {
-            nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
+            nsdManager?.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
         } catch (e: Exception) {
             Log.e(TAG, "Erreur lancement discoverServices", e)
         }
@@ -81,8 +91,17 @@ class NsdDiscoveryManager(private val context: Context) {
 
             @Suppress("DEPRECATION")
             override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-                Log.d(TAG, "Service résolu : ${serviceInfo.serviceName} at ${serviceInfo.host}:${serviceInfo.port}")
+                val sName = serviceInfo.serviceName ?: ""
+                Log.d(TAG, "Service résolu : $sName at ${serviceInfo.host}:${serviceInfo.port}")
+                if (sName == registeredServiceName || sName.startsWith(SERVICE_NAME_PREFIX)) {
+                    Log.d(TAG, "Service auto-détecté ignoré (onServiceResolved) : $sName")
+                    return
+                }
                 val hostAddress = serviceInfo.host?.hostAddress ?: return
+                if (com.lancefer.lancedrop.utils.NetworkUtils.isSelfIp(hostAddress)) {
+                    Log.d(TAG, "Hôte auto-détecté par IP ignoré (mDNS) : $hostAddress ($sName)")
+                    return
+                }
 
                 val osType = when {
                     serviceInfo.serviceName.contains("Win", ignoreCase = true) -> OsType.WINDOWS
@@ -109,21 +128,23 @@ class NsdDiscoveryManager(private val context: Context) {
 
         try {
             @Suppress("DEPRECATION")
-            nsdManager.resolveService(serviceInfo, resolveListener)
+            nsdManager?.resolveService(serviceInfo, resolveListener)
         } catch (e: Exception) {
             Log.e(TAG, "Erreur resolveService", e)
         }
     }
 
     fun registerLocalService(port: Int = 42420) {
+        val initialName = "$SERVICE_NAME_PREFIX-${Build.MODEL}"
+        registeredServiceName = initialName
         val serviceInfo = NsdServiceInfo().apply {
-            serviceName = "$SERVICE_NAME_PREFIX-${Build.MODEL}"
+            serviceName = initialName
             serviceType = SERVICE_TYPE
             setPort(port)
         }
 
         try {
-            nsdManager.registerService(
+            nsdManager?.registerService(
                 serviceInfo,
                 NsdManager.PROTOCOL_DNS_SD,
                 object : NsdManager.RegistrationListener {
@@ -136,10 +157,14 @@ class NsdDiscoveryManager(private val context: Context) {
                     }
 
                     override fun onServiceRegistered(serviceInfo: NsdServiceInfo) {
+                        registeredServiceName = serviceInfo.serviceName
                         Log.d(TAG, "Service Android enregistré sous : ${serviceInfo.serviceName}")
                     }
 
                     override fun onServiceUnregistered(serviceInfo: NsdServiceInfo) {
+                        if (registeredServiceName == serviceInfo.serviceName) {
+                            registeredServiceName = null
+                        }
                         Log.d(TAG, "Service Android désenregistré : ${serviceInfo.serviceName}")
                     }
                 },
@@ -152,7 +177,7 @@ class NsdDiscoveryManager(private val context: Context) {
     fun stopDiscovery() {
         discoveryListener?.let {
             try {
-                nsdManager.stopServiceDiscovery(it)
+                nsdManager?.stopServiceDiscovery(it)
             } catch (e: Exception) {
                 Log.e(TAG, "Erreur stopServiceDiscovery", e)
             }

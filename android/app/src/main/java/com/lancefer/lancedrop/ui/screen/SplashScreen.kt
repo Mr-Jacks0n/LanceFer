@@ -24,16 +24,23 @@ import kotlinx.coroutines.delay
 fun SplashScreen(
     onTimeout: () -> Unit
 ) {
-    // Animation de progression
-    val progress by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = tween(durationMillis = 2200, easing = FastOutSlowInEasing),
-        label = "SplashProgress"
-    )
+    val progress = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
-        delay(2500)
+        progress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 2400, easing = FastOutSlowInEasing)
+        )
+        delay(200)
         onTimeout()
+    }
+
+    val currentPercent = (progress.value * 100).toInt().coerceIn(0, 100)
+    val loadingStep = when {
+        currentPercent < 30 -> "Initialisation des services LanceDrop..."
+        currentPercent < 65 -> "Vérification des autorisations locales..."
+        currentPercent < 90 -> "Préparation du moteur de transfert..."
+        else -> "Prêt !"
     }
 
     Box(
@@ -155,28 +162,51 @@ fun SplashScreen(
             }
         }
 
-        // Bas de Page : Barre de progression + Slogan
+        // Bas de Page : Pourcentage, Étape, Barre de progression + Slogan
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp)
+                .padding(bottom = 24.dp)
         ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "$currentPercent%",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = loadingStep,
+                color = Color.White.copy(alpha = 0.85f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             LinearProgressIndicator(
-                progress = { progress },
+                progress = { progress.value },
                 color = Color.White,
                 trackColor = Color.White.copy(alpha = 0.25f),
                 modifier = Modifier
-                    .width(140.dp)
-                    .height(4.dp)
+                    .width(180.dp)
+                    .height(6.dp)
                     .clip(CircleShape)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             Text(
                 text = "Plus proche. Plus rapide.",
-                color = Color.White.copy(alpha = 0.8f),
+                color = Color.White.copy(alpha = 0.75f),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )

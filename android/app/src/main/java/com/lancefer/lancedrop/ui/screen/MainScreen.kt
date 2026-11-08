@@ -1,7 +1,10 @@
 package com.lancefer.lancedrop.ui.screen
 
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,21 +21,31 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.lancefer.lancedrop.ui.remote.RemoteExplorerScreen
+import com.lancefer.lancedrop.ui.remote.RemoteExplorerViewModel
 import com.lancefer.lancedrop.model.TransferState
+import com.lancefer.lancedrop.ui.components.CameraQrScannerDialog
+import com.lancefer.lancedrop.ui.components.ConflictResolutionDialog
+import com.lancefer.lancedrop.ui.components.ManualIpDialog
+import com.lancefer.lancedrop.ui.components.PermissionRequestDialog
 import com.lancefer.lancedrop.ui.theme.*
 import com.lancefer.lancedrop.ui.viewmodel.MainViewModel
+import com.lancefer.lancedrop.utils.FileHelper
 
 enum class AppNavScreen {
     SPLASH,
     LOGIN,
     HOME,
+    SEND_MODE,
     FILES,
     TRANSFERS,
     STORAGE,
     RECEIVE_MODE,
     CLIPBOARD,
     FILE_PREVIEW,
-    SETTINGS
+    SETTINGS,
+    RemoteExplorer
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,16 +53,67 @@ enum class AppNavScreen {
 fun MainScreen(viewModel: MainViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val remoteExplorerViewModel: RemoteExplorerViewModel = viewModel()
 
     var currentScreen by remember { mutableStateOf(AppNavScreen.SPLASH) }
     var selectedCategory by remember { mutableStateOf("Tous") }
-    var previewFileName by remember { mutableStateOf("Paysage_Alpes.jpg") }
-    var previewFileSize by remember { mutableStateOf("4,2 Mo") }
+    var previewFileName by remember { mutableStateOf("") }
+    var previewFileUri by remember { mutableStateOf<Uri?>(null) }
+    var previewFilePath by remember { mutableStateOf<String?>(null) }
+    var previewFileSize by remember { mutableStateOf("") }
+    var previewFileDate by remember { mutableStateOf("") }
+    var showPermissionDialog by remember { mutableStateOf(true) }
 
-    // Gestion du bouton Retour Android matériel / gestuel
+    LaunchedEffect(currentScreen, uiState.selectedPeerForTransfer, uiState.discoveredPeers) {
+        if (currentScreen == AppNavScreen.RemoteExplorer) {
+            val peer = uiState.selectedPeerForTransfer ?: uiState.discoveredPeers.firstOrNull()
+            if (peer != null) {
+                remoteExplorerViewModel.connectToPeer(peer)
+            } else {
+                remoteExplorerViewModel.loadShares()
+            }
+        }
+    }
+
+    // Demande automatique des permissions nécessaires dès l'ouverture de l'application
+    val requiredPermissions = remember {
+        val list = mutableListOf(
+            android.Manifest.permission.CAMERA
+        )
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            list.add(android.Manifest.permission.POST_NOTIFICATIONS)
+            list.add(android.Manifest.permission.READ_MEDIA_IMAGES)
+            list.add(android.Manifest.permission.READ_MEDIA_VIDEO)
+            list.add(android.Manifest.permission.READ_MEDIA_AUDIO)
+            list.add(android.Manifest.permission.NEARBY_WIFI_DEVICES)
+        } else {
+            list.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+            list.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+        list
+    }
+
+    val requestPermissionsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { _: Map<String, Boolean> ->
+        showPermissionDialog = false
+    }
+
+    LaunchedEffect(currentScreen) {
+        if ((currentScreen == AppNavScreen.HOME || currentScreen == AppNavScreen.LOGIN) && showPermissionDialog) {
+            val missing = requiredPermissions.filter {
+                androidx.core.content.ContextCompat.checkSelfPermission(context, it) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            }
+            if (missing.isNotEmpty()) {
+                requestPermissionsLauncher.launch(missing.toTypedArray())
+            } else {
+                showPermissionDialog = false
+            }
+        }
+    }
     BackHandler(enabled = currentScreen != AppNavScreen.HOME && currentScreen != AppNavScreen.LOGIN && currentScreen != AppNavScreen.SPLASH) {
         when (currentScreen) {
-            AppNavScreen.RECEIVE_MODE, AppNavScreen.STORAGE, AppNavScreen.SETTINGS, AppNavScreen.CLIPBOARD -> {
+            AppNavScreen.RECEIVE_MODE, AppNavScreen.SEND_MODE, AppNavScreen.STORAGE, AppNavScreen.SETTINGS, AppNavScreen.CLIPBOARD, AppNavScreen.RemoteExplorer -> {
                 currentScreen = AppNavScreen.HOME
             }
             AppNavScreen.FILE_PREVIEW -> {
@@ -65,9 +129,9 @@ fun MainScreen(viewModel: MainViewModel) {
     Scaffold(
         bottomBar = {
             // Afficher la barre de navigation sur les écrans principaux
-            if (currentScreen in listOf(AppNavScreen.HOME, AppNavScreen.FILES, AppNavScreen.TRANSFERS, AppNavScreen.SETTINGS)) {
+            if (currentScreen in listOf(AppNavScreen.HOME, AppNavScreen.FILES, AppNavScreen.TRANSFERS, AppNavScreen.SETTINGS, AppNavScreen.RemoteExplorer)) {
                 NavigationBar(
-                    containerColor = LanceDropCardLight,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     tonalElevation = 8.dp,
                     modifier = Modifier.clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
                 ) {
@@ -132,6 +196,20 @@ fun MainScreen(viewModel: MainViewModel) {
                     )
 
                     NavigationBarItem(
+                        selected = currentScreen == AppNavScreen.RemoteExplorer,
+                        onClick = { currentScreen = AppNavScreen.RemoteExplorer },
+                        icon = { Icon(Icons.Default.Dns, contentDescription = "Explorer PC") },
+                        label = { Text("Explorer PC", fontSize = 11.sp, fontWeight = if (currentScreen == AppNavScreen.RemoteExplorer) FontWeight.Bold else FontWeight.Normal) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = LanceDropBlue,
+                            selectedTextColor = LanceDropBlue,
+                            indicatorColor = LanceDropBlueLight,
+                            unselectedIconColor = LanceDropTextMutedLight,
+                            unselectedTextColor = LanceDropTextMutedLight
+                        )
+                    )
+
+                    NavigationBarItem(
                         selected = currentScreen == AppNavScreen.SETTINGS,
                         onClick = { currentScreen = AppNavScreen.SETTINGS },
                         icon = { Icon(Icons.Default.Settings, contentDescription = "Paramètres") },
@@ -147,7 +225,7 @@ fun MainScreen(viewModel: MainViewModel) {
                 }
             }
         },
-        containerColor = LanceDropBgLight
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -158,14 +236,17 @@ fun MainScreen(viewModel: MainViewModel) {
                 AppNavScreen.SPLASH -> {
                     SplashScreen(
                         onTimeout = {
-                            currentScreen = AppNavScreen.HOME
+                            currentScreen = if (viewModel.isUserConfigured()) AppNavScreen.HOME else AppNavScreen.LOGIN
                         }
                     )
                 }
 
                 AppNavScreen.LOGIN -> {
                     LoginScreen(
-                        onLoginSuccess = {
+                        onLoginSuccess = { chosenDeviceName ->
+                            if (!chosenDeviceName.isNullOrBlank()) {
+                                viewModel.setCustomDeviceName(chosenDeviceName)
+                            }
                             currentScreen = AppNavScreen.HOME
                         }
                     )
@@ -174,6 +255,21 @@ fun MainScreen(viewModel: MainViewModel) {
                 AppNavScreen.HOME -> {
                     HomeScreen(
                         recentTransfers = uiState.transferHistory,
+                        interruptedTransfer = uiState.interruptedTransfer,
+                        onResumeInterrupted = { viewModel.resumeInterruptedTransfer(it) },
+                        onDismissInterrupted = { viewModel.dismissInterruptedTransfer(it) },
+                        discoveredPeers = uiState.discoveredPeers,
+                        onSelectPeer = { peer ->
+                            viewModel.setSelectedPeerForTransfer(peer)
+                            selectedCategory = "Tous"
+                            currentScreen = AppNavScreen.FILES
+                        },
+                        onAddDevice = {
+                            viewModel.setManualIpDialogVisible(true)
+                        },
+                        onOpenQrScanner = {
+                            viewModel.setCameraScannerVisible(true)
+                        },
                         onNavigateToFiles = { category ->
                             selectedCategory = category ?: "Tous"
                             currentScreen = AppNavScreen.FILES
@@ -184,6 +280,9 @@ fun MainScreen(viewModel: MainViewModel) {
                         onNavigateToStorage = {
                             currentScreen = AppNavScreen.STORAGE
                         },
+                        onNavigateToSendMode = {
+                            currentScreen = AppNavScreen.SEND_MODE
+                        },
                         onNavigateToReceiveMode = {
                             currentScreen = AppNavScreen.RECEIVE_MODE
                         },
@@ -192,6 +291,24 @@ fun MainScreen(viewModel: MainViewModel) {
                         },
                         onNavigateToSettings = {
                             currentScreen = AppNavScreen.SETTINGS
+                        },
+                        deviceInfo = uiState.deviceInfo,
+                        localIpAddress = uiState.localIpAddress,
+                        wifiSSID = uiState.wifiSSID
+                    )
+                }
+
+                AppNavScreen.SEND_MODE -> {
+                    SendModeScreen(
+                        viewModel = viewModel,
+                        onNavigateBack = {
+                            currentScreen = AppNavScreen.HOME
+                        },
+                        onNavigateToTransfers = {
+                            currentScreen = AppNavScreen.TRANSFERS
+                        },
+                        onNavigateToCameraScanner = {
+                            viewModel.setCameraScannerVisible(true)
                         }
                     )
                 }
@@ -199,8 +316,13 @@ fun MainScreen(viewModel: MainViewModel) {
                 AppNavScreen.FILES -> {
                     MyFilesScreen(
                         initialCategory = selectedCategory,
-                        onNavigateToPreview = { fileName ->
-                            previewFileName = fileName
+                        viewModel = viewModel,
+                        onNavigateToPreview = { name, uri, size, date ->
+                            previewFileName = name
+                            previewFileUri = uri
+                            previewFilePath = null
+                            previewFileSize = size
+                            previewFileDate = date
                             currentScreen = AppNavScreen.FILE_PREVIEW
                         },
                         onNavigateToTransfers = {
@@ -236,6 +358,7 @@ fun MainScreen(viewModel: MainViewModel) {
 
                 AppNavScreen.RECEIVE_MODE -> {
                     ReceiveModeScreen(
+                        viewModel = viewModel,
                         onNavigateBack = {
                             currentScreen = AppNavScreen.HOME
                         }
@@ -256,16 +379,25 @@ fun MainScreen(viewModel: MainViewModel) {
                 AppNavScreen.FILE_PREVIEW -> {
                     FilePreviewScreen(
                         fileName = previewFileName,
+                        fileUri = previewFileUri,
+                        filePath = previewFilePath,
                         fileSize = previewFileSize,
+                        fileDate = previewFileDate,
                         onNavigateBack = {
                             currentScreen = AppNavScreen.FILES
                         },
                         onSendToPc = {
                             val peer = uiState.selectedPeerForTransfer ?: uiState.discoveredPeers.firstOrNull()
                             if (peer != null) {
-                                Toast.makeText(context, "Envoi de $previewFileName vers ${peer.name}...", Toast.LENGTH_SHORT).show()
+                                if (previewFileUri != null) {
+                                    val sizeBytes = try { FileHelper.getFileSize(context, previewFileUri!!) } catch (_: Exception) { 0L }
+                                    viewModel.startFileTransferFromUri(peer, previewFileUri!!, previewFileName, sizeBytes)
+                                    Toast.makeText(context, "Envoi de $previewFileName vers ${peer.name}...", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Envoi vers ${peer.name}...", Toast.LENGTH_SHORT).show()
+                                }
                             } else {
-                                Toast.makeText(context, "Envoi vers le PC appairé...", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Aucun PC connecté. Utilisez le scanner QR ou ajoutez une IP.", Toast.LENGTH_SHORT).show()
                             }
                             currentScreen = AppNavScreen.TRANSFERS
                         }
@@ -279,10 +411,78 @@ fun MainScreen(viewModel: MainViewModel) {
                         },
                         onLogout = {
                             currentScreen = AppNavScreen.LOGIN
+                        },
+                        themeMode = uiState.themeMode,
+                        onThemeModeChange = { viewModel.setThemeMode(it) },
+                        soundEnabled = uiState.soundEffectsEnabled,
+                        onSoundEnabledChange = { viewModel.setSoundEffectsEnabled(it) },
+                        conflictResolution = uiState.conflictResolutionMode,
+                        onConflictResolutionChange = { viewModel.setConflictResolutionMode(it) },
+                        onClearHistory = {
+                            viewModel.clearHistory()
+                            Toast.makeText(context, "Historique effacé avec succès", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                }
+
+                AppNavScreen.RemoteExplorer -> {
+                    RemoteExplorerScreen(
+                        viewModel = remoteExplorerViewModel,
+                        onNavigateBack = {
+                            currentScreen = AppNavScreen.HOME
                         }
                     )
                 }
             }
         }
+    }
+
+    // Dialogue d'autorisations au premier démarrage
+    if (showPermissionDialog) {
+        PermissionRequestDialog(
+            onDismiss = { showPermissionDialog = false },
+            onAllPermissionsGranted = {
+                showPermissionDialog = false
+                viewModel.startDiscovery()
+                viewModel.refreshMediaStats()
+            }
+        )
+    }
+
+    // Dialogue Scanner Caméra QR Code en temps réel
+    if (uiState.isCameraScannerVisible) {
+        CameraQrScannerDialog(
+            onDismiss = { viewModel.setCameraScannerVisible(false) },
+            onQrScanned = { qrContent ->
+                viewModel.onQrCodeScanned(qrContent)
+                viewModel.setCameraScannerVisible(false)
+                Toast.makeText(context, "Appareil détecté via QR Code !", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    // Dialogue d'ajout manuel d'adresse IP
+    if (uiState.isManualIpDialogVisible) {
+        ManualIpDialog(
+            onDismiss = { viewModel.setManualIpDialogVisible(false) },
+            onConfirm = { ip, port ->
+                viewModel.addManualPeer(ipAddress = ip, port = port, name = "PC ($ip)")
+                viewModel.setManualIpDialogVisible(false)
+                Toast.makeText(context, "Connexion ajoutée à $ip:$port", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    // Dialogue de résolution de conflits
+    uiState.conflictDialogState?.let { conflictState ->
+        ConflictResolutionDialog(
+            fileName = conflictState.fileName,
+            onResolve = { action ->
+                viewModel.resolveConflict(action)
+            },
+            onDismiss = {
+                viewModel.dismissConflictDialog()
+            }
+        )
     }
 }

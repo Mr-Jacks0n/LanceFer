@@ -33,6 +33,7 @@ fun ActiveTransfersScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
     var selectedTab by remember { mutableStateOf(0) } // 0: En cours, 1: Terminés
 
     val activeCount = if (uiState.activeTransferState is TransferState.Transferring) 1 else 0
@@ -47,18 +48,18 @@ fun ActiveTransfersScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onNavigateBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour", tint = LanceDropTextMainLight)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour", tint = MaterialTheme.colorScheme.onBackground)
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Transferts",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = LanceDropTextMainLight
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         },
-        containerColor = LanceDropBgLight
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -71,7 +72,7 @@ fun ActiveTransfersScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(999.dp))
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(4.dp)
             ) {
                 Button(
@@ -231,7 +232,10 @@ fun ActiveTransfersScreen(
                                 icon = Icons.Default.CheckCircle,
                                 iconColor = LanceDropGreen,
                                 bgColor = LanceDropGreenLight,
-                                statusText = "100%"
+                                statusText = "100%",
+                                onOpen = if (item.fileUri != null || !item.filePath.isNullOrEmpty()) {
+                                    { com.lancefer.lancedrop.utils.FileHelper.openFile(context, item.fileUri, item.filePath, item.fileName) }
+                                } else null
                             )
                         }
                     }
@@ -422,11 +426,5 @@ fun TransferProgressCardLive(
 }
 
 private fun formatFileSize(bytes: Long): String {
-    return if (bytes < 1024 * 1024) {
-        String.format(java.util.Locale.FRANCE, "%.0f Ko", bytes.toDouble() / 1024.0)
-    } else if (bytes < 1024 * 1024 * 1024) {
-        String.format(java.util.Locale.FRANCE, "%.1f Mo", bytes.toDouble() / (1024.0 * 1024.0))
-    } else {
-        String.format(java.util.Locale.FRANCE, "%.2f Go", bytes.toDouble() / (1024.0 * 1024.0 * 1024.0))
-    }
+    return com.lancefer.lancedrop.utils.FileHelper.formatFileSize(bytes)
 }

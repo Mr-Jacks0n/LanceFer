@@ -7,45 +7,54 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = LanceDropBlue,
-    onPrimary = LanceDropCardLight,
+    primary = LanceDropBlueLightAAA,
+    onPrimary = Color.White,
     primaryContainer = LanceDropBlueLight,
-    onPrimaryContainer = LanceDropBlueDark,
-    secondary = LanceDropGreen,
-    onSecondary = LanceDropCardLight,
+    onPrimaryContainer = LanceDropBlueLightAAA,
+    secondary = LanceDropSuccessTextLightAAA,
+    onSecondary = Color.White,
+    secondaryContainer = LanceDropGreenLight,
+    onSecondaryContainer = LanceDropSuccessTextLightAAA,
+    error = LanceDropErrorIconLight,
+    onError = Color.White,
     background = LanceDropBgLight,
-    onBackground = LanceDropTextMainLight,
+    onBackground = LanceDropTextMainLightAAA,
     surface = LanceDropCardLight,
-    onSurface = LanceDropTextMainLight,
+    onSurface = LanceDropTextMainLightAAA,
     surfaceVariant = LanceDropBlueSubtle,
-    onSurfaceVariant = LanceDropTextMutedLight,
+    onSurfaceVariant = LanceDropTextSecondaryLightAAA,
     outline = LanceDropCardBorderLight
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = LanceDropBlue,
-    onPrimary = LanceDropCardLight,
-    primaryContainer = LanceDropBlueDark,
-    onPrimaryContainer = LanceDropBlueLight,
-    secondary = LanceDropGreen,
-    onSecondary = LanceDropCardLight,
-    background = LanceDropBgDark,
-    onBackground = LanceDropTextMainDark,
-    surface = LanceDropCardDark,
-    onSurface = LanceDropTextMainDark,
-    surfaceVariant = LanceDropCardDark,
-    onSurfaceVariant = LanceDropTextMutedDark,
-    outline = LanceDropCardBorderDark
+    primary = LanceDropBlueDarkAAA,
+    onPrimary = LanceDropBlueOnPrimaryDark,
+    primaryContainer = ElectricBlueLight,
+    onPrimaryContainer = LanceDropBlueDarkAAA,
+    secondary = Color(0xFF86EFAC),
+    onSecondary = Color(0xFF070C14),
+    secondaryContainer = Color(0xFF14532D),
+    onSecondaryContainer = Color(0xFF86EFAC),
+    error = LanceDropErrorIconDark,
+    onError = Color(0xFF070C14),
+    background = CyberSlateBg,
+    onBackground = LanceDropTextMainDarkAAA,
+    surface = CyberSlateCard,
+    onSurface = LanceDropTextMainDarkAAA,
+    surfaceVariant = Color(0xFF1E293B),
+    onSurfaceVariant = LanceDropTextSecondaryDarkAAA,
+    outline = CyberSlateCardBorder
 )
 
 @Composable
 fun LanceDropTheme(
-    darkTheme: Boolean = false, // Mode clair par défaut conforme à la maquette
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
@@ -54,7 +63,7 @@ fun LanceDropTheme(
     if (!view.isInEditMode && view.context is Activity) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = (if (darkTheme) LanceDropBgDark else LanceDropBgLight).toArgb()
+            window.statusBarColor = (if (darkTheme) CyberSlateBg else LanceDropBgLight).toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }

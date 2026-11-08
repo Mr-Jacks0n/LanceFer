@@ -26,13 +26,23 @@ import androidx.compose.ui.unit.sp
 import com.lancefer.lancedrop.ui.theme.*
 import kotlinx.coroutines.delay
 
+import com.lancefer.lancedrop.ui.viewmodel.MainViewModel
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReceiveModeScreen(
+    viewModel: MainViewModel,
     onNavigateBack: () -> Unit
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    val deviceModel = android.os.Build.MODEL
+
     // Timer dégressif pour l'expiration du QR code (1:50 -> 110s)
     var secondsLeft by remember { mutableIntStateOf(110) }
+    val sessionPin = remember(secondsLeft) {
+        val n = (100000..999999).random()
+        "${n / 1000} ${n % 1000}"
+    }
     LaunchedEffect(Unit) {
         while (secondsLeft > 0) {
             delay(1000)
@@ -165,77 +175,42 @@ fun ReceiveModeScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // QR Code stylisé haute fidélité
+                    val sessionPin = uiState.pairingPinCode ?: remember { (100000..999999).random().toString() }
+                    val plainJson = remember(uiState.localIpAddress, sessionPin, deviceModel) {
+                        """{"app":"LanceDrop","v":1,"type":"mobile","name":"$deviceModel","ip":"${uiState.localIpAddress}","port":42420,"pin":"$sessionPin","ts":${System.currentTimeMillis()}}"""
+                    }
+                    // Chiffrement cryptographique AES-256 : opaque pour tout scanner externe
+                    val encryptedQrPayload = remember(plainJson) {
+                        com.lancefer.lancedrop.utils.QrSecurityCrypto.encryptQrPayload(plainJson)
+                    }
+                    val qrBitmap = remember(encryptedQrPayload) {
+                        com.lancefer.lancedrop.utils.QrCodeUtils.generateQrCodeBitmap(encryptedQrPayload, 512, 512)
+                    }
+
+                    // QR Code transactionnel authentique haute fidélité
                     Box(
                         modifier = Modifier
-                            .size(200.dp)
+                            .size(210.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
                             .background(Color.White)
                             .padding(12.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        // Dessin matriciel QR Code vectoriel dynamique
-                        Canvas(modifier = Modifier.fillMaxSize()) {
-                            val cellSize = size.width / 21f
-                            val darkBrush = Brush.linearGradient(listOf(Color(0xFF0F172A), Color(0xFF1E3A8A)))
-
-                            // Motifs de positionnement (3 coins carrés)
-                            fun drawFinderPattern(col: Int, row: Int) {
-                                val left = col * cellSize
-                                val top = row * cellSize
-                                // Cadre extérieur 7x7
-                                drawRect(
-                                    brush = darkBrush,
-                                    topLeft = Offset(left, top),
-                                    size = Size(7 * cellSize, 7 * cellSize)
-                                )
-                                // Espace blanc 5x5
-                                drawRect(
-                                    color = Color.White,
-                                    topLeft = Offset(left + cellSize, top + cellSize),
-                                    size = Size(5 * cellSize, 5 * cellSize)
-                                )
-                                // Centre plein 3x3
-                                drawRect(
-                                    brush = darkBrush,
-                                    topLeft = Offset(left + 2 * cellSize, top + 2 * cellSize),
-                                    size = Size(3 * cellSize, 3 * cellSize)
-                                )
-                            }
-
-                            drawFinderPattern(0, 0)
-                            drawFinderPattern(14, 0)
-                            drawFinderPattern(0, 14)
-
-                            // Données pseudo-aléatoires déterministes pour l'empreinte visuelle exacte d'un QR
-                            val pattern = arrayOf(
-                                "10110010101",
-                                "01001101010",
-                                "11010010111",
-                                "00111001001",
-                                "10100110110",
-                                "01101001001",
-                                "10011101110"
+                        if (qrBitmap != null) {
+                            androidx.compose.foundation.Image(
+                                bitmap = qrBitmap,
+                                contentDescription = "QR Code Transactionnel Authentique LanceDrop",
+                                modifier = Modifier.fillMaxSize()
                             )
-
-                            for (r in 0 until 7) {
-                                for (c in 0 until 11) {
-                                    if (pattern[r][c] == '1') {
-                                        drawRect(
-                                            brush = darkBrush,
-                                            topLeft = Offset((8 + c) * cellSize, (8 + r) * cellSize),
-                                            size = Size(cellSize * 0.9f, cellSize * 0.9f)
-                                        )
-                                    }
-                                }
-                            }
+                        } else {
+                            CircularProgressIndicator(color = LanceDropBlue)
                         }
 
                         // Logo central LanceDrop
                         Box(
                             modifier = Modifier
-                                .size(34.dp)
+                                .size(36.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(Color.White)
                                 .border(2.dp, LanceDropBlue, RoundedCornerShape(8.dp)),
@@ -270,7 +245,10 @@ fun ReceiveModeScreen(
                             color = Color(0xFF64748B)
                         )
                         IconButton(
-                            onClick = { secondsLeft = 110 },
+                            onClick = {
+                                secondsLeft = 110
+                                viewModel.generatePairingPin()
+                            },
                             modifier = Modifier.size(22.dp)
                         ) {
                             Icon(
@@ -284,61 +262,53 @@ fun ReceiveModeScreen(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Identifiant et code PIN direct
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFF8FAFC))
-                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(12.dp))
-                            .padding(horizontal = 14.dp, vertical = 10.dp)
+                    // Identifiant et code PIN direct mis en valeur
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                        border = androidx.compose.foundation.BorderStroke(1.5.dp, LanceDropBlue.copy(alpha = 0.35f))
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Column {
-                                Text(
-                                    text = "Mon appareil",
-                                    fontSize = 10.sp,
-                                    color = Color(0xFF94A3B8),
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    text = "Samsung Galaxy A54",
-                                    fontSize = 13.sp,
-                                    color = Color(0xFF1E293B),
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(
-                                    text = "Code direct",
-                                    fontSize = 10.sp,
-                                    color = Color(0xFF94A3B8),
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    text = "842 190",
-                                    fontSize = 13.sp,
-                                    color = LanceDropBlue,
-                                    fontWeight = FontWeight.ExtraBold
-                                )
-                            }
+                            Text(
+                                text = "CODE PIN UNIQUE DE CE SMARTPHONE",
+                                fontSize = 10.sp,
+                                color = LanceDropBlue,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = sessionPin,
+                                fontSize = 24.sp,
+                                color = LanceDropTextMainLight,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 3.sp
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Saisissez ce code sur l'émetteur pour transférer directement sans scanner.",
+                                fontSize = 10.sp,
+                                color = Color(0xFF64748B),
+                                textAlign = TextAlign.Center
+                            )
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Bannière Réseau Wi-Fi Info
+            // Bannière Réseau Wi-Fi & Option Hotspot
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f))
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.18f))
             ) {
                 Row(
                     modifier = Modifier
@@ -349,26 +319,35 @@ fun ReceiveModeScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(38.dp)
                             .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.2f)),
+                            .background(Color.White.copy(alpha = 0.25f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Wifi, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Wifi, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
                     }
 
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Connecté au même réseau local",
+                            text = "Réseau de transfert Wi-Fi",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                         Text(
-                            text = "Wi-Fi : Home_5G • Débit optimal jusqu'à 80 Mo/s",
+                            text = "${uiState.wifiSSID} • IP : ${uiState.localIpAddress}",
                             fontSize = 11.sp,
-                            color = Color.White.copy(alpha = 0.8f)
+                            color = Color.White.copy(alpha = 0.85f)
                         )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(LanceDropGreen)
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Text("Prêt", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     }
                 }
             }
