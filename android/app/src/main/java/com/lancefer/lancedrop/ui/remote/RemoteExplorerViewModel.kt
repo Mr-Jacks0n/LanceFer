@@ -52,12 +52,12 @@ data class RemoteExplorerUiState(
 /**
  * ViewModel pour l'explorateur de fichiers distant et le streaming multimédia.
  */
+// @JvmOverloads génère déjà le constructeur (Application) attendu par
+// ViewModelProvider ; un secondaire explicite créerait un clash JVM.
 class RemoteExplorerViewModel @JvmOverloads constructor(
     application: Application,
     private val client: RemoteExplorerClient = RemoteExplorerClient()
 ) : AndroidViewModel(application) {
-
-    constructor(application: Application) : this(application, RemoteExplorerClient())
 
     private val _uiState = MutableStateFlow(RemoteExplorerUiState())
     val uiState: StateFlow<RemoteExplorerUiState> = _uiState.asStateFlow()
