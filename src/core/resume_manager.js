@@ -114,4 +114,40 @@ export class ResumeManager {
       // Ignorer si le fichier n'existe plus
     }
   }
+
+  /**
+   * Ramasse-miettes (Garbage Collector) : Nettoie les manifestes et fichiers partiels orphelins
+   * abandonnés depuis plus de maxAgeMs (défaut: 24 heures)
+   * @param {string} destinationDir
+   * @param {number} [maxAgeMs=86400000]
+   * @returns {Promise<number>} Nombre de transferts orphelins purgés
+   */
+  static async cleanupExpiredManifests(destinationDir, maxAgeMs = 24 * 3600 * 1000) {
+    try {
+      const files = await fs.readdir(destinationDir);
+      let purgedCount = 0;
+      const now = Date.now();
+
+      for (const file of files) {
+        if (file.startsWith('.fastdrop_resume_') && file.endsWith('.json')) {
+          const manifestPath = path.join(destinationDir, file);
+          try {
+            const stat = await fs.stat(manifestPath);
+            if (now - stat.mtimeMs > maxAgeMs) {
+              const content = await fs.readFile(manifestPath, 'utf8');
+              const manifest = JSON.parse(content);
+              if (manifest.destination_path) {
+                await fs.unlink(manifest.destination_path).catch(() => {});
+              }
+              await fs.unlink(manifestPath).catch(() => {});
+              purgedCount++;
+            }
+          } catch {}
+        }
+      }
+      return purgedCount;
+    } catch {
+      return 0;
+    }
+  }
 }

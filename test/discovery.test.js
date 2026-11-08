@@ -131,3 +131,103 @@ test('DiscoveryEngine: Expiration TTL et détection de disparition de pair', asy
   await devA.stop();
 });
 
+test('DiscoveryEngine: Rejet strict des annonces provenant des propres adresses IP de l’hôte (peer_found non émis)', async () => {
+  const hostIps = ['192.168.1.100', '10.0.0.5'];
+  const devHost = new DiscoveryEngine({
+    deviceId: 'dev-host-001',
+    deviceName: 'Host-PC',
+    platform: 'windows',
+    ownIps: hostIps,
+  });
+
+  assert.equal(devHost.isOwnAddress('192.168.1.100'), true);
+  assert.equal(devHost.isOwnAddress('::ffff:192.168.1.100'), true);
+  assert.equal(devHost.isOwnAddress('10.0.0.5'), true);
+  assert.equal(devHost.isOwnAddress('192.168.1.200'), false);
+
+  let peerFoundEmitted = false;
+  let peerDiscoveredEmitted = false;
+
+  devHost.on('peer_found', () => {
+    peerFoundEmitted = true;
+  });
+  devHost.on('peer_discovered', () => {
+    peerDiscoveredEmitted = true;
+  });
+
+  // 1. Annonce simulant un rebond UDP provenant de la propre IP de l'hôte (même avec un deviceId distinct)
+  devHost.handleAnnouncement(
+    {
+      deviceId: 'dev-ghost-self',
+      deviceName: 'Phantom-Self',
+      platform: 'windows',
+      transferPort: 42420,
+    },
+    { address: '192.168.1.100', port: 42424 }
+  );
+
+  // Annonce avec préfixe IPv4-mapped ::ffff:
+  devHost.handleAnnouncement(
+    {
+      deviceId: 'dev-ghost-v6',
+      deviceName: 'Phantom-V6',
+      platform: 'windows',
+      transferPort: 42420,
+    },
+    { address: '::ffff:10.0.0.5', port: 42424 }
+  );
+
+  assert.equal(peerFoundEmitted, false, 'peer_found ne doit pas être émis pour une IP propre à l’hôte');
+  assert.equal(peerDiscoveredEmitted, false, 'peer_discovered ne doit pas être émis pour une IP propre à l’hôte');
+  assert.equal(devHost.getPeers().length, 0, 'La liste des pairs doit rester vide');
+
+  // 2. Annonce légitime provenant d'un pair externe distant (IP différente)
+  devHost.handleAnnouncement(
+    {
+      deviceId: 'dev-remote-real',
+      deviceName: 'Android-Pixel',
+      platform: 'android',
+      transferPort: 42420,
+    },
+    { address: '192.168.1.200', port: 42424 }
+  );
+
+  assert.equal(peerFoundEmitted, true, 'peer_found doit être émis pour un pair distant légitime');
+  assert.equal(peerDiscoveredEmitted, true, 'peer_discovered doit être émis pour un pair distant légitime');
+  assert.equal(devHost.getPeers().length, 1, 'Le pair distant légitime doit être ajouté');
+  assert.equal(devHost.getPeers()[0].deviceId, 'dev-remote-real');
+});
+
+test('DiscoveryEngine: Rejet strict des annonces portant le propre deviceId de l’appareil', async () => {
+  const devLocal = new DiscoveryEngine({
+    deviceId: 'dev-self-999',
+    deviceName: 'Mon-PC',
+    platform: 'windows',
+  });
+
+  let selfPeerFound = false;
+  let selfPeerDiscovered = false;
+
+  devLocal.on('peer_found', () => {
+    selfPeerFound = true;
+  });
+  devLocal.on('peer_discovered', () => {
+    selfPeerDiscovered = true;
+  });
+
+  // Annonce contenant le même deviceId que l'appareil local (même avec une IP distante différente)
+  devLocal.handleAnnouncement(
+    {
+      deviceId: 'dev-self-999',
+      deviceName: 'Mon-PC',
+      platform: 'windows',
+      transferPort: 42420,
+    },
+    { address: '192.168.1.188', port: 42424 }
+  );
+
+  assert.equal(selfPeerFound, false, 'peer_found ne doit pas être émis pour le propre deviceId');
+  assert.equal(selfPeerDiscovered, false, 'peer_discovered ne doit pas être émis pour le propre deviceId');
+  assert.equal(devLocal.getPeers().length, 0, 'Aucun pair avec le propre deviceId ne doit être enregistré');
+});
+

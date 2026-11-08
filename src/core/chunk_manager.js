@@ -108,7 +108,7 @@ export class ChunkManager {
     ack.writeUInt16BE(fileIndex, 0);
     ack.writeUInt16BE(0, 2);
     ack.writeUInt32BE(chunkIndex, 4);
-    ack.writeUInt32BE(bytesWritten, 8);
+    ack.writeBigUInt64BE(BigInt(bytesWritten), 8);
     return ack;
   }
 
@@ -118,12 +118,12 @@ export class ChunkManager {
    * @returns {{ fileIndex: number, chunkIndex: number, bytesWritten: number }}
    */
   static decodeAckPayload(ackBuffer) {
-    if (ackBuffer.length < 12) {
-      throw new Error('Payload CHUNK_ACK invalide (< 12 octets)');
+    if (ackBuffer.length < 16) {
+      throw new Error('Payload CHUNK_ACK invalide (< 16 octets)');
     }
     const fileIndex = ackBuffer.readUInt16BE(0);
     const chunkIndex = ackBuffer.readUInt32BE(4);
-    const bytesWritten = ackBuffer.readUInt32BE(8);
+    const bytesWritten = Number(ackBuffer.readBigUInt64BE(8));
     return { fileIndex, chunkIndex, bytesWritten };
   }
 }

@@ -1,5 +1,6 @@
 import dgram from 'node:dgram';
 import { EventEmitter } from 'node:events';
+import os from 'node:os';
 
 export const DEFAULT_DISCOVERY_PORT = 42424;
 export const DEFAULT_BEACON_INTERVAL_MS = 2000;
@@ -17,6 +18,8 @@ export class DiscoveryEngine extends EventEmitter {
    * @param {string} localDeviceInfo.platform - windows, android, linux, macos
    * @param {number} [localDeviceInfo.transferPort] - Port TCP FastDrop (défaut 42420)
    * @param {number} [localDeviceInfo.version] - Version du protocole
+   * @param {Array<string>} [localDeviceInfo.ownAddresses] - Liste des adresses IP propres à l'hôte
+   * @param {Array<string>} [localDeviceInfo.ownIps] - Alias de ownAddresses
    */
   constructor(localDeviceInfo) {
     super();
@@ -28,6 +31,27 @@ export class DiscoveryEngine extends EventEmitter {
       version: localDeviceInfo.version || 1,
     };
 
+    // Suivi multi-interfaces des propres adresses IP de l'hôte
+    this.ownIps = new Set();
+    const initialAddresses = localDeviceInfo.ownAddresses || localDeviceInfo.ownIps;
+    if (Array.isArray(initialAddresses) || initialAddresses instanceof Set) {
+      for (const ip of initialAddresses) {
+        this.addOwnIp(ip);
+      }
+    } else {
+      // Découverte dynamique des interfaces physiques/externes (non-internes)
+      try {
+        const interfaces = os.networkInterfaces();
+        for (const name of Object.keys(interfaces)) {
+          for (const iface of interfaces[name]) {
+            if (iface && iface.address && !iface.internal) {
+              this.addOwnIp(iface.address);
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
     this.socket = null;
     this.peers = new Map(); // deviceId -> PeerInfo
     this.beaconTimer = null;
@@ -36,6 +60,42 @@ export class DiscoveryEngine extends EventEmitter {
     this.discoveryPort = DEFAULT_DISCOVERY_PORT;
     this.targetPort = DEFAULT_DISCOVERY_PORT;
     this.broadcastAddress = '255.255.255.255';
+    this.broadcastAddresses = ['255.255.255.255'];
+  }
+
+  /**
+   * Enregistre une adresse IP comme appartenant à l'hôte local
+   * @param {string} ip
+   */
+  addOwnIp(ip) {
+    if (!ip) return;
+    const clean = String(ip).replace(/^::ffff:/i, '').trim().toLowerCase();
+    this.ownIps.add(clean);
+    this.ownIps.add(String(ip).toLowerCase());
+  }
+
+  /**
+   * Définit explicitement l'ensemble des adresses IP de l'hôte
+   * @param {Array<string>|Set<string>} ips
+   */
+  setOwnIps(ips) {
+    this.ownIps.clear();
+    if (Array.isArray(ips) || ips instanceof Set) {
+      for (const ip of ips) {
+        this.addOwnIp(ip);
+      }
+    }
+  }
+
+  /**
+   * Vérifie si une adresse IP correspond à l'hôte local
+   * @param {string} addr
+   * @returns {boolean}
+   */
+  isOwnAddress(addr) {
+    if (!addr) return false;
+    const clean = String(addr).replace(/^::ffff:/i, '').trim().toLowerCase();
+    return this.ownIps.has(clean) || this.ownIps.has(String(addr).toLowerCase());
   }
 
   /**
@@ -54,6 +114,9 @@ export class DiscoveryEngine extends EventEmitter {
     this.discoveryPort = options.port || DEFAULT_DISCOVERY_PORT;
     this.targetPort = options.targetPort || this.discoveryPort;
     this.broadcastAddress = options.broadcastAddress || '255.255.255.255';
+    this.broadcastAddresses = Array.isArray(options.broadcastAddresses) && options.broadcastAddresses.length > 0
+      ? options.broadcastAddresses
+      : [this.broadcastAddress];
     const beaconInterval = options.beaconIntervalMs || DEFAULT_BEACON_INTERVAL_MS;
     const peerTtl = options.peerTtlMs || DEFAULT_PEER_TTL_MS;
 
@@ -140,11 +203,13 @@ export class DiscoveryEngine extends EventEmitter {
     });
 
     const msg = Buffer.from(payload, 'utf8');
-    this.socket.send(msg, 0, msg.length, this.targetPort, this.broadcastAddress, err => {
-      if (err) {
-        // Erreur réseau non bloquante sur broadcast
-      }
-    });
+    const targets = Array.isArray(this.broadcastAddresses) && this.broadcastAddresses.length > 0
+      ? this.broadcastAddresses
+      : [this.broadcastAddress];
+
+    for (const bcast of targets) {
+      this.socket.send(msg, 0, msg.length, this.targetPort, bcast, () => {});
+    }
   }
 
   /**
@@ -195,6 +260,9 @@ export class DiscoveryEngine extends EventEmitter {
       // Ignorer ses propres annonces
       if (data.deviceId === this.localDevice.deviceId) return;
 
+      // Filtrer les annonces provenant des propres adresses IP de l'hôte
+      if (rinfo && rinfo.address && this.isOwnAddress(rinfo.address)) return;
+
       if (data.type === 'PROBE') {
         // Répondre immédiatement en unicast à l'émetteur
         this._sendBeaconTo(rinfo.address, rinfo.port);
@@ -206,9 +274,28 @@ export class DiscoveryEngine extends EventEmitter {
         const now = Date.now();
         const isNew = !this.peers.has(peerId);
 
+        // Protection anti-DoS : éviction LRU si le nombre de pairs atteint le seuil maximal
+        if (isNew && this.peers.size >= (this.maxPeers || 50)) {
+          let oldestId = null;
+          let oldestTime = Infinity;
+          for (const [id, peer] of this.peers.entries()) {
+            if (peer.lastSeen < oldestTime) {
+              oldestTime = peer.lastSeen;
+              oldestId = id;
+            }
+          }
+          if (oldestId) {
+            this.peers.delete(oldestId);
+          }
+        }
+
+        const cleanName = String(data.deviceName || 'Inconnu')
+          .replace(/[\x00-\x1F\x7F]/g, '')
+          .slice(0, 64);
+
         const peerInfo = {
           deviceId: data.deviceId,
-          deviceName: data.deviceName,
+          deviceName: cleanName,
           platform: data.platform,
           address: rinfo.address,
           transferPort: data.transferPort || 42420,
@@ -220,6 +307,7 @@ export class DiscoveryEngine extends EventEmitter {
 
         if (isNew) {
           this.emit('peer_discovered', peerInfo);
+          this.emit('peer_found', peerInfo);
         } else {
           this.emit('peer_updated', peerInfo);
         }
@@ -227,6 +315,20 @@ export class DiscoveryEngine extends EventEmitter {
     } catch {
       // Ignorer les paquets non JSON ou malformés
     }
+  }
+
+  /**
+   * Traitement d'un objet d'annonce reçu (utilisé directement ou via socket)
+   * @param {object} announcement
+   * @param {object} rinfo
+   */
+  handleAnnouncement(announcement, rinfo = { address: '127.0.0.1', port: 42424 }) {
+    const payload = Buffer.from(JSON.stringify({
+      magic: 'FD',
+      type: 'BEACON',
+      ...announcement,
+    }), 'utf8');
+    this._handleIncomingPacket(payload, rinfo);
   }
 
   /**

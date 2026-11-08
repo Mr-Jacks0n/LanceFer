@@ -1,555 +1,890 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LanceDrop Desktop</title>
-  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <!-- Anti-flicker Synchronous Theme Bootstrap -->
+  <script>
+    (function() {
+      try {
+        var t = localStorage.getItem('lancedrop_theme');
+        if (t === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch(e) {}
+    })();
+  </script>
+  <!-- Google Fonts: Plus Jakarta Sans, Inter, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <!-- Microsoft Clarity Monitoring (Privacy-masked & Offline-safe) -->
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      t.onerror=function(){ /* Fallback silencieux si hors-ligne */ };
+      y=l.getElementsByTagName(r)[0];if(y&&y.parentNode){y.parentNode.insertBefore(t,y);}
+    })(window, document, "clarity", "script", "lancedrop_local");
+  </script>
 </head>
 <body>
-  <div class="app-layout">
-    
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- COLONNE 1 : SIDEBAR GAUCHE (Navigation & Profil)        -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <aside class="sidebar-left">
-      <!-- Logo LanceDrop -->
-      <div class="brand-header">
-        <div class="brand-logo-icon">
-          <!-- Nuage bleu avec flèche montante -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 0. SPLASH SCREEN D'OUVERTURE (INITIAL LOADING STATE)         -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div id="desktopSplashScreen" class="desktop-splash-screen" title="Cliquez ou appuyez sur une touche pour passer">
+    <div class="splash-backdrop-glow"></div>
+    <div class="splash-card">
+      <div class="splash-logo-wrapper">
+        <div class="splash-logo-pulse"></div>
+        <div class="splash-logo-icon">
           <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="40" height="40" rx="12" fill="#1A73E8"/>
-            <path d="M28 24C29.6569 24 31 22.6569 31 21C31 19.4674 29.8519 18.2029 28.3698 18.0248C28.1367 14.6293 25.3211 12 21.875 12C18.9189 12 16.4259 13.9372 15.6025 16.6347C15.1118 16.3986 14.5636 16.25 13.9844 16.25C11.7839 16.25 10 18.0339 10 20.2344C10 22.3168 11.6033 24.0249 13.6396 24.2084" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
-            <path d="M20.5 28V19M20.5 19L17.5 22M20.5 19L23.5 22" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect width="40" height="40" rx="12" fill="var(--blue-primary)"/>
+            <path d="M28 24C29.6569 24 31 22.6569 31 21C31 19.4674 29.8519 18.2029 28.3698 18.0248C28.1367 14.6293 25.3211 12 21.875 12C18.9189 12 16.4259 13.9372 15.6025 16.6347C15.1118 16.3986 14.5636 16.25 13.9844 16.25C11.7839 16.25 10 18.0339 10 20.2344C10 22.3168 11.6033 24.0249 13.6396 24.2084" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M20.5 28V19M20.5 19L17.5 22M20.5 19L23.5 22" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-        </div>
-        <div class="brand-text">
-          <span class="brand-name">LanceDrop</span>
-          <span class="brand-sub">Desktop</span>
         </div>
       </div>
 
-      <!-- Menu Principal -->
-      <nav class="sidebar-menu">
-        <button class="nav-item active" id="navLibrary" data-view="library">
-          <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
+      <h1 class="splash-title">LanceDrop</h1>
+      <p class="splash-subtitle">Transférez vos fichiers en toute simplicité</p>
+
+      <div class="splash-progress-container">
+        <div class="splash-progress-bar">
+          <div id="splashProgressFill" class="splash-progress-fill"></div>
+        </div>
+        <div class="splash-status-row">
+          <span id="splashStatusText" class="splash-status-text">Initialisation des services LanceDrop...</span>
+          <span id="splashPercentText" class="splash-percent-text">0%</span>
+        </div>
+      </div>
+
+      <div class="splash-footer-badge">
+        <span class="splash-footer-dot"></span>
+        <span>Moteur FastDrop v4 • Chiffrement AES-256</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- APPLICATION SHELL : TOP APP BAR & MAIN RADAR STAGE           -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="app-shell">
+
+    <!-- ───────────────────────────────────────────────────────── -->
+    <!-- 1. Top App Bar (AirDrop / Quick Share Sleek Header)       -->
+    <!-- ───────────────────────────────────────────────────────── -->
+    <header class="top-app-bar">
+      <div class="top-bar-left">
+        <div class="brand-cluster">
+          <div class="brand-logo-icon">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="40" height="40" rx="12" fill="var(--blue-primary)"/>
+              <path d="M28 24C29.6569 24 31 22.6569 31 21C31 19.4674 29.8519 18.2029 28.3698 18.0248C28.1367 14.6293 25.3211 12 21.875 12C18.9189 12 16.4259 13.9372 15.6025 16.6347C15.1118 16.3986 14.5636 16.25 13.9844 16.25C11.7839 16.25 10 18.0339 10 20.2344C10 22.3168 11.6033 24.0249 13.6396 24.2084" stroke="var(--blue-on-primary)" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M20.5 28V19M20.5 19L17.5 22M20.5 19L23.5 22" stroke="var(--blue-on-primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="brand-titles">
+            <span class="brand-name">LanceDrop</span>
+            <span class="brand-sub">Desktop</span>
+          </div>
+        </div>
+
+        <div class="local-device-pill" id="topLocalDeviceTag" title="Nom de cette machine sur le réseau local">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+          <span class="local-device-label">Ce PC :</span>
+          <strong class="local-device-name" id="topLocalDeviceName">PC-Windows</strong>
+        </div>
+
+        <div class="network-badge-row" id="networkStatusBadge" title="Diagnostic réseau et pare-feu">
+          <span class="status-indicator-dot online" id="netStatusDot"></span>
+          <span class="network-badge-text" id="netStatusText">Wi-Fi LAN Connecté</span>
+        </div>
+      </div>
+
+      <div class="top-bar-right">
+        <!-- Boutons d'action Slide-Over et Modales -->
+        <button class="top-action-btn" id="btnOpenSharesDrawer" title="Gérer les dossiers partagés distants">
+          <svg viewBox="0 0 20 20" fill="currentColor">
             <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
           </svg>
-          <span>Bibliothèque PC</span>
+          <span>Dossiers partagés</span>
         </button>
 
-        <button class="nav-item" id="navSecure" data-view="secure">
-          <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm2 6V6a2 2 0 10-4 0v2h4zm-2 4a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" clip-rule="evenodd"/>
+        <button class="top-action-btn" id="btnOpenHistoryDrawer" title="Afficher l'historique des transferts">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
           </svg>
-          <span>Dossiers sécurisés</span>
+          <span>Historique</span>
         </button>
 
-        <button class="nav-item" id="navTransfers" data-view="transfers">
-          <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+        <button class="top-action-btn" id="btnOpenReceiveQrModal" title="Afficher mon QR Code et Code PIN de réception">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
           </svg>
-          <span>Transferts</span>
+          <span>Mon QR / PIN</span>
         </button>
 
-        <button class="nav-item" id="navDevices" data-view="devices">
-          <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zm3 14a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
-          </svg>
-          <span>Appareils connectés</span>
+        <button class="top-icon-btn" id="btnQuickThemeToggle" title="Basculer le thème Sombre / Clair">
+          <span id="themeToggleIcon">🌙</span>
         </button>
 
-        <button class="nav-item" id="navClipboard" data-view="clipboard">
-          <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-            <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" />
-          </svg>
-          <span>Presse-papier partagé</span>
-          <span class="nav-badge-pill" id="navClipboardBadge">1</span>
-        </button>
-
-        <button class="nav-item" id="navSettings" data-view="settings">
-          <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
+        <button class="top-icon-btn" id="btnOpenSettings" title="Paramètres du système">
+          <svg viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
           </svg>
-          <span>Paramètres</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ───────────────────────────────────────────────────────── -->
+    <!-- 2. Scène Centrale Radar AirDrop / Quick Share             -->
+    <!-- ───────────────────────────────────────────────────────── -->
+    <main class="main-radar-stage">
+
+      <!-- Bandeau Proactif de Reprise après Crash -->
+      <div id="crashRecoveryBanner" class="crash-recovery-banner" style="display: none;">
+        <div class="crash-banner-content">
+          <span class="crash-banner-icon">⚠️</span>
+          <div class="crash-banner-text">
+            <h4 id="crashBannerTitle">Transfert interrompu détecté</h4>
+            <p id="crashBannerDesc">Un transfert inachevé a été récupéré. Souhaitez-vous le finaliser immédiatement ?</p>
+          </div>
+        </div>
+        <div class="crash-banner-actions">
+          <button class="btn-crash-resume" id="btnCrashResume">Reprendre immédiatement</button>
+          <button class="btn-crash-dismiss" id="btnCrashDismiss">Annuler</button>
+        </div>
+      </div>
+
+      <!-- Navigation par Onglets de la Scène Principale -->
+      <nav class="main-stage-tabs" role="tablist" aria-label="Navigation principale">
+        <button class="stage-tab-btn active" id="tabBtnRadar" role="tab" aria-selected="true" aria-controls="radarStageView">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tab-icon">
+            <circle cx="12" cy="12" r="2"/>
+            <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5M7.8 7.8c-2.3 2.3-2.3 6.1 0 8.5M19.1 4.9c3.9 3.9 3.9 10.2 0 14.1M4.9 4.9c-3.9 3.9-3.9 10.2 0 14.1"/>
+          </svg>
+          <span>Radar des pairs</span>
+        </button>
+        <button class="stage-tab-btn" id="tabBtnMyDevice" role="tab" aria-selected="false" aria-controls="myDeviceSection">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tab-icon">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+          <span>Mon appareil</span>
         </button>
       </nav>
 
-      <!-- Profil Utilisateur Bas de Sidebar -->
-      <div class="user-profile-card">
-        <div class="user-avatar">JD</div>
-        <div class="user-info">
-          <span class="user-name">John D.</span>
-          <span class="user-desc">Compte personnel</span>
+      <!-- Vue Scène Radar -->
+      <div class="radar-stage-view" id="radarStageView">
+        <!-- Zone Centrale Radar Interactive -->
+        <section class="radar-canvas-area" id="radarCanvasArea">
+          
+          <!-- Onde Radar Concentrique Animée GPU -->
+          <div class="radar-waves" id="radarWaves">
+            <div class="radar-wave-ring ring-1"></div>
+            <div class="radar-wave-ring ring-2"></div>
+            <div class="radar-wave-ring ring-3"></div>
+            <div class="radar-wave-ring ring-4"></div>
+            <div class="radar-sweep"></div>
+          </div>
+
+          <!-- Balise Centrale "Ce PC" -->
+          <div class="central-beacon" id="centralBeacon" title="Ce PC — Cliquez pour voir les détails de cet appareil">
+            <div class="beacon-halo"></div>
+            <div class="beacon-avatar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+            </div>
+            <div class="beacon-meta">
+              <span class="beacon-tag">Ce PC</span>
+              <strong class="beacon-name" id="beaconDeviceName">Mon-PC-Windows</strong>
+            </div>
+          </div>
+
+          <!-- Couche SVG du Faisceau Laser de Connexion -->
+          <svg class="radar-beam-layer" id="radarBeamLayer" width="100%" height="100%">
+            <line id="radarConnectionBeam" class="radar-connection-beam" x1="0" y1="0" x2="0" y2="0" />
+          </svg>
+
+          <!-- Couche Dynamique des Nœuds Pairs Détectés -->
+          <div class="radar-peers-layer" id="radarPeersLayer">
+            <!-- Les nœuds .peer-node sont injectés dynamiquement par renderer.js -->
+          </div>
+
+          <!-- État Radar Vide / Recherche d'appareils -->
+          <div class="radar-empty-state" id="radarEmptyState">
+            <div class="radar-empty-icon-pulse">📡</div>
+            <h3 class="radar-empty-title">Recherche d'appareils à proximité...</h3>
+            <p class="radar-empty-desc">Ouvrez LanceDrop sur votre smartphone Android ou un autre PC connecté au même Wi-Fi pour partager instantanément.</p>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+              <button class="btn-radar-manual-connect" id="btnRadarScanNow" style="background: var(--blue-primary); color: white;">🔄 Actualiser le scan</button>
+              <button class="btn-radar-manual-connect" id="btnRadarAddDevice">+ Associer manuellement</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Barre d'Action Basse : Cible Active & Dépose Rapide -->
+        <div class="radar-dock" id="radarDock">
+          <div class="dock-target-capsule" id="dockTargetCapsule">
+            <span class="target-capsule-label">Destinataire actif :</span>
+            <strong class="target-capsule-name" id="activeTargetLabel">Aucun appareil sélectionné</strong>
+            <span class="device-count-pill" id="deviceCountPill">0 appareil</span>
+          </div>
+
+          <div class="dock-actions-group">
+            <button class="btn-primary-action" id="btnAddFiles">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+              </svg>
+              <span id="btnSendFilesText">Envoyer des fichiers</span>
+            </button>
+
+            <button class="btn-secondary-action" id="btnAddFolder">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+              </svg>
+              <span>Envoyer un dossier</span>
+            </button>
+
+            <button class="btn-outline-action" id="btnOpenAddDevice">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+              </svg>
+              <span>Associer</span>
+            </button>
+
+            <button class="btn-outline-action" id="btnDockScan" title="Scanner le réseau local pour détecter les appareils">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
+                <circle cx="12" cy="12" r="2"/>
+                <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5M7.8 7.8c-2.3 2.3-2.3 6.1 0 8.5"/>
+              </svg>
+              <span>Scanner</span>
+            </button>
+          </div>
+
+          <!-- Conteneur discret pour compatibilité sélective -->
+          <div id="targetDevicesList" style="display: none;"></div>
         </div>
-        <svg class="chevron-right" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+      </div>
+
+      <!-- Section Dédiée Non-Interactive "Mon appareil" -->
+      <section class="my-device-section" id="myDeviceSection" role="tabpanel" aria-labelledby="tabBtnMyDevice" style="display: none;">
+        <div class="my-device-container">
+          <div class="my-device-hero-card">
+            <div class="my-device-header-row">
+              <div class="my-device-avatar-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="my-device-os-icon">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                  <line x1="8" y1="21" x2="16" y2="21"/>
+                  <line x1="12" y1="17" x2="12" y2="21"/>
+                </svg>
+              </div>
+              <div class="my-device-hero-info">
+                <div class="my-device-badge-row">
+                  <span class="badge-local-device">Mon appareil</span>
+                  <span class="badge-os-tag" id="myDeviceOsBadge">Windows</span>
+                </div>
+                <h2 class="my-device-hero-title" id="myDeviceHeroName">Mon-PC-Windows</h2>
+                <span class="my-device-hero-subtitle" id="myDeviceHeroSubtitle">Ordinateur local • Prêt pour le partage réseau</span>
+              </div>
+              <div class="my-device-status-badge">
+                <span class="status-indicator-dot online" id="myDeviceStatusDot"></span>
+                <span class="my-device-status-text" id="myDeviceStatusText">Disponible (En ligne)</span>
+              </div>
+            </div>
+
+            <div class="my-device-grid">
+              <!-- Nom de l'appareil -->
+              <div class="my-device-metric-card">
+                <div class="metric-icon-box">💻</div>
+                <div class="metric-text-stack">
+                  <span class="metric-label">Nom de l'appareil</span>
+                  <strong class="metric-value" id="myDeviceMetricName">Mon-PC-Windows</strong>
+                </div>
+              </div>
+
+              <!-- Type d'OS -->
+              <div class="my-device-metric-card">
+                <div class="metric-icon-box">🪟</div>
+                <div class="metric-text-stack">
+                  <span class="metric-label">Système d'exploitation</span>
+                  <strong class="metric-value" id="myDeviceMetricOs">Windows (x64)</strong>
+                </div>
+              </div>
+
+              <!-- Adresse(s) IP active(s) -->
+              <div class="my-device-metric-card">
+                <div class="metric-icon-box">🌐</div>
+                <div class="metric-text-stack">
+                  <span class="metric-label">Adresse IP principale</span>
+                  <strong class="metric-value font-mono" id="myDeviceMetricIp">127.0.0.1</strong>
+                </div>
+              </div>
+
+              <!-- Port TCP -->
+              <div class="my-device-metric-card">
+                <div class="metric-icon-box">⚡</div>
+                <div class="metric-text-stack">
+                  <span class="metric-label">Port de transfert TCP</span>
+                  <strong class="metric-value font-mono" id="myDeviceMetricPort">42420</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interfaces réseau actives détaillées -->
+            <div class="my-device-network-panel">
+              <h4 class="panel-section-title">Adresses IP et Interfaces Actives</h4>
+              <div class="my-device-ifaces-list" id="myDeviceIfacesList"></div>
+            </div>
+
+            <!-- Bannière de Sécurité & Non-Interactivité (Zero Send to Self) -->
+            <div class="my-device-isolation-banner">
+              <span class="isolation-icon">🛡️</span>
+              <div class="isolation-text">
+                <strong>Appareil local sécurisé :</strong>
+                <span>Cet écran présente l'identité de votre ordinateur sur le réseau local. L'envoi vers soi-même est strictement neutralisé pour éviter toute auto-connexion en boucle.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 3. ZONE DE DRAG & DROP PLEIN ÉCRAN (GLASSMORPHISM BLUR)      -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="dropzone-fullscreen" id="dropzoneFullscreen" aria-hidden="true">
+    <div class="dropzone-blur-surface"></div>
+    <div class="dropzone-content-box">
+      <div class="dropzone-halo-ring">
+        <svg viewBox="0 0 48 48" fill="none" class="dropzone-icon-svg">
+          <rect width="48" height="48" rx="16" fill="var(--blue-light)"/>
+          <path d="M24 14V30M24 14L18 20M24 14L30 20" stroke="var(--blue-primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M14 28V32C14 33.1046 14.8954 34 16 34H32C33.1046 34 34 33.1046 34 32V28" stroke="var(--text-muted)" stroke-width="2.5" stroke-linecap="round"/>
         </svg>
       </div>
-    </aside>
+      <h2 class="dropzone-title">Déposez vos fichiers pour envoyer</h2>
+      <p class="dropzone-target-text" id="dropzoneTargetText">
+        Envoi direct et chiffré vers <strong id="dropzoneTargetName">l'appareil sélectionné</strong>
+      </p>
+      <span class="dropzone-badge-hint">⚡ Transfert instantané en Wi-Fi Direct AES-256-GCM</span>
+    </div>
+  </div>
 
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- COLONNE 2 : BIBLIOTHÈQUE PC (Contenu Central)           -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <main class="main-content">
-      <!-- VUE 1 : BIBLIOTHÈQUE DE FICHIERS PC -->
-      <div id="libraryView" class="view-panel active-panel">
-      <!-- En-tête de la Bibliothèque -->
-      <header class="content-header">
-        <div class="header-titles">
-          <h1>Bibliothèque PC</h1>
-          <p class="stats-text" id="statsCounter">0 fichier • 0 Mo</p>
-        </div>
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 4. TIROIRS COULISSANTS (SLIDE-OVER DRAWERS)                  -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
 
-        <div class="header-actions">
-          <!-- Barre de Recherche -->
-          <div class="search-box">
-            <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-            </svg>
-            <input type="text" id="searchInput" placeholder="Rechercher un fichier, un dossier...">
-          </div>
-
-          <!-- Bouton Ajouter Fichiers -->
-          <button class="btn-primary" id="btnAddFiles">
-            <svg viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
-            </svg>
-            <span>Ajouter des fichiers</span>
-          </button>
-        </div>
-      </header>
-
-      <!-- Barre des Filtres et du Tri -->
-      <div class="filter-bar">
-        <div class="filter-tabs">
-          <button class="filter-pill active" data-filter="all">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
-            <span>Tous</span>
-          </button>
-          <button class="filter-pill" data-filter="images">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg>
-            <span>Images</span>
-          </button>
-          <button class="filter-pill" data-filter="docs">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
-            <span>Documents</span>
-          </button>
-          <button class="filter-pill" data-filter="videos">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
-            <span>Vidéos</span>
-          </button>
-          <button class="filter-pill" data-filter="audio">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/></svg>
-            <span>Audio</span>
-          </button>
-        </div>
-
-        <div class="sort-controls">
-          <span class="sort-label">Trier par :</span>
-          <select class="sort-select" id="sortSelect">
-            <option value="recent">Plus récent</option>
-            <option value="name">Nom</option>
-            <option value="size">Taille</option>
-          </select>
-
-          <div class="view-toggles">
-            <button class="view-btn active" id="btnGridView" title="Affichage Grille">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-            </button>
-            <button class="view-btn" id="btnListView" title="Affichage Liste">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
-            </button>
-          </div>
+  <!-- Tiroir 1 : Dossiers Partagés Distants (Remote Explorer) -->
+  <aside class="slide-drawer" id="drawerShares" aria-hidden="true">
+    <div class="drawer-header">
+      <div class="drawer-title-box">
+        <div class="drawer-icon-box">📁</div>
+        <div>
+          <h3 class="drawer-title">Dossiers Partagés Distants</h3>
+          <span class="drawer-subtitle">Exploration & streaming multimédia RFC 7233</span>
         </div>
       </div>
+      <button class="drawer-close-btn" id="btnCloseSharesDrawer" aria-label="Fermer le tiroir">&times;</button>
+    </div>
 
-      <!-- Grille des Fichiers & État Vide -->
-      <div class="files-container" id="filesContainer">
-        <div class="empty-state-card" id="libraryEmptyState">
-          <div class="empty-state-icon-wrapper">
-            <svg viewBox="0 0 48 48" fill="none" style="width: 52px; height: 52px;">
-              <rect width="48" height="48" rx="14" fill="#EFF6FF"/>
-              <path d="M24 16V28M24 16L20 20M24 16L28 20" stroke="#1A73E8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M14 26V30C14 31.1046 14.8954 32 16 32H32C33.1046 32 34 31.1046 34 30V26" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <h3>Votre bibliothèque PC est vide</h3>
-          <p>Glissez-déposez des fichiers ici ou parcourez votre ordinateur pour ajouter des documents à envoyer.</p>
-          <button class="btn-primary" id="btnEmptyStateAdd">
-            <svg viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
-            </svg>
-            <span>Ajouter des fichiers</span>
-          </button>
-        </div>
-
-        <div class="files-grid" id="filesGrid" style="display: none;"></div>
+    <div class="drawer-body">
+      <div class="drawer-banner-hint">
+        Autorisez des répertoires locaux. Les smartphones associés pourront explorer leur contenu et lire les flux vidéo/audio en streaming instantané.
       </div>
 
-      <!-- Barre d'Actions Inférieure (Sélection de fichiers) -->
-      <footer class="bottom-selection-bar" id="selectionBar">
-        <div class="selection-info">
-          <svg viewBox="0 0 20 20" fill="#1A73E8">
-            <path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944z" clip-rule="evenodd"/>
+      <div class="drawer-actions-row">
+        <button class="btn-primary-action full-width" id="btnAddSharedFolderBtn">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
           </svg>
-          <span id="selectedCountText">3 éléments sélectionnés</span>
-          <span class="dot-separator">•</span>
-          <span id="selectedSizeText">12,8 Mo</span>
-        </div>
-
-        <div class="selection-actions">
-          <button class="btn-action" id="btnShare">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/></svg>
-            <span>Partager</span>
-          </button>
-          <button class="btn-action" id="btnMove">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
-            <span>Déplacer</span>
-          </button>
-          <button class="btn-action btn-danger" id="btnDeleteSelected">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-            <span>Supprimer</span>
-          </button>
-          <button class="btn-icon" title="Plus d'actions">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg>
-          </button>
-        </div>
-      </footer>
-
-      <!-- Modale de Confirmation de Suppression -->
-      <div class="modal-backdrop" id="deleteModal">
-        <div class="modal-card">
-          <div class="modal-header">
-            <div class="modal-icon-title">
-              <div class="modal-icon">
-                <svg viewBox="0 0 20 20" fill="#1A73E8"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-              </div>
-              <h3 class="modal-title">Supprimer ce fichier ?</h3>
-            </div>
-            <button class="modal-close-btn" id="modalCloseBtn">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-            </button>
-          </div>
-
-          <div class="modal-body">
-            <p class="modal-desc">Êtes-vous sûr de vouloir supprimer définitivement ce fichier ? Cette action est irréversible.</p>
-
-            <!-- Aperçu du fichier à supprimer -->
-            <div class="modal-file-preview">
-              <div class="modal-thumb"></div>
-              <div class="modal-file-info">
-                <span class="modal-file-name" id="modalFileName">Paysage_Alpes.jpg</span>
-                <span class="modal-file-meta" id="modalFileMeta">4,8 Mo • 12 août 2025</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button class="btn-primary-confirm" id="btnConfirmDelete">Supprimer</button>
-            <button class="btn-cancel" id="btnCancelDelete">Annuler</button>
-          </div>
-        </div>
-      </div>
+          <span>+ Ajouter un dossier partagé</span>
+        </button>
       </div>
 
-      <!-- VUE 2 : PRESSE-PAPIER PARTAGÉ & TRANSFERT DE TEXTE -->
-      <div id="clipboardView" class="view-panel" style="display: none;">
-        <header class="content-header">
-          <div class="header-titles">
-            <h1>Presse-papier partagé</h1>
-            <p class="stats-text" id="clipboardStatsText">Synchronisation instantanée en temps réel</p>
-          </div>
+      <div class="shared-folders-list" id="sharedFoldersList">
+        <!-- Rendu dynamique par renderer.js -->
+      </div>
 
-          <div class="header-actions">
-            <button class="btn-primary" id="btnSyncClipboardNow">
-              <svg viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-              </svg>
-              <span>Synchroniser</span>
-            </button>
-          </div>
-        </header>
+      <div class="drawer-empty-state" id="sharedFoldersEmpty" style="display: none;">
+        <div class="drawer-empty-icon">📂</div>
+        <h4>Aucun dossier partagé</h4>
+        <p>Cliquez sur le bouton ci-dessus pour désigner un dossier de votre ordinateur accessible aux téléphones connectés.</p>
+      </div>
+    </div>
+  </aside>
 
-        <div class="clipboard-container">
-          <!-- Carte 1 : Envoi de texte vers le téléphone -->
-          <div class="clipboard-card send-card">
-            <div class="clipboard-card-header">
-              <div class="card-title-group">
-                <div class="icon-circle blue">
-                  <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
-                </div>
-                <div>
-                  <h3>Envoyer du texte vers le téléphone</h3>
-                  <span class="sub-text" id="clipboardTargetSubText">Appareil cible : En attente de connexion</span>
-                </div>
-              </div>
-              <button class="btn-paste-shortcut" id="btnPasteFromLocal">
-                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" /></svg>
-                <span>Coller du presse-papier PC</span>
+  <!-- Tiroir 2 : Historique des Transferts -->
+  <aside class="slide-drawer" id="drawerHistory" aria-hidden="true">
+    <div class="drawer-header">
+      <div class="drawer-title-box">
+        <div class="drawer-icon-box">🕒</div>
+        <div>
+          <h3 class="drawer-title">Historique des Transferts</h3>
+          <span class="drawer-subtitle">Fichiers transmis avec validation SHA-256</span>
+        </div>
+      </div>
+      <div class="drawer-header-actions">
+        <button class="btn-clear-history-sm" id="btnClearTransfersHistory">Vider</button>
+        <button class="drawer-close-btn" id="btnCloseHistoryDrawer" aria-label="Fermer le tiroir">&times;</button>
+      </div>
+    </div>
+
+    <div class="drawer-body">
+      <div class="transfers-history-list" id="transfersHistoryList">
+        <!-- Rendu dynamique par renderer.js -->
+      </div>
+
+      <div class="drawer-empty-state" id="transfersEmptyState" style="display: none;">
+        <div class="drawer-empty-icon">📦</div>
+        <h4>Aucun transfert récent</h4>
+        <p>Les fichiers envoyés et reçus s'afficheront automatiquement ici.</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 5. CAPSULE HUD DE TRANSFERT FLOTTANTE EN BAS D'ÉCRAN         -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="transfer-hud-capsule" id="transferHudCapsule" aria-live="polite">
+    <div class="hud-left-meta">
+      <div class="hud-animated-icon">
+        <span class="hud-pulse-ring"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="hud-rocket-svg">
+          <path d="M12 2v20M12 2l-6 6M12 2l6 6"/>
+        </svg>
+      </div>
+      <div class="hud-text-stack">
+        <span class="hud-file-name" id="hudFileName">Fichier.dat</span>
+        <div class="hud-info-row">
+          <span class="hud-speed-pill" id="hudTransferSpeed">⚡ 0 Mo/s</span>
+          <span class="hud-dot">•</span>
+          <span class="hud-percent" id="hudTransferPercent">0%</span>
+          <span class="hud-dot">•</span>
+          <span class="hud-transferred-size" id="hudTransferSize">0 / 0 o</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-progress-center">
+      <div class="hud-progress-track">
+        <div class="hud-progress-fill" id="hudProgressBar" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <div class="hud-controls-right">
+      <button class="hud-ctrl-btn" id="hudBtnPause" title="Mettre en pause">⏸</button>
+      <button class="hud-ctrl-btn cancel" id="hudBtnCancel" title="Annuler le transfert">✕</button>
+    </div>
+
+    <!-- Éléments masqués pour rétrocompatibilité d'écouteurs -->
+    <div style="display: none;">
+      <div id="transferProgressBar"></div>
+      <div id="transferSpeedText"></div>
+      <div id="activeTransferName"></div>
+      <div id="transferPercent"></div>
+      <div id="btnPauseTransfer"></div>
+      <div id="btnCancelTransfer"></div>
+      <div id="transferList"></div>
+      <div id="transferEmptyState"></div>
+      <div id="btnSendFiles"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 6. MODALE FEUILLE D'APPAIRAGE MON QR CODE & PIN             -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modalReceiveQr" style="display: none;">
+    <div class="modal-card modal-qr-card">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <h4>Mon QR de Réception & Code PIN</h4>
+        </div>
+        <button class="modal-close-btn" id="btnCloseReceiveQrModal">&times;</button>
+      </div>
+
+      <div class="modal-body qr-modal-body">
+        <div class="qr-container-premium">
+          <div class="qr-real-wrapper" id="qrRealWrapper">
+            <canvas id="qrCanvas" width="220" height="220" class="qr-real-canvas" data-clarity-mask="true"></canvas>
+          </div>
+          
+          <div class="qr-meta-card">
+            <div class="qr-meta-row">
+              <span class="qr-meta-label">IP & Port :</span>
+              <strong class="qr-meta-val" id="qrNetworkIp" data-clarity-mask="true">127.0.0.1:42420</strong>
+            </div>
+            <div class="qr-meta-row">
+              <span class="qr-meta-label">Code PIN :</span>
+              <strong class="qr-meta-pin" id="qrPinCode" data-clarity-mask="true">--- ---</strong>
+              <button class="btn-icon-refresh-pin" id="btnRefreshPin" title="Régénérer le PIN et le QR Code">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                </svg>
               </button>
             </div>
+          </div>
+          <p class="qr-caption">Scannez ce QR code avec LanceDrop sur votre mobile ou saisissez le code PIN pour appairer immédiatement cet ordinateur.</p>
 
-            <textarea id="clipboardTextInput" class="clipboard-input-field" placeholder="Collez ou tapez ici un texte, une URL, un mot de passe ou une note à afficher sur le smartphone..."></textarea>
-
-            <div class="clipboard-card-footer">
-              <span class="char-count" id="charCountLabel">0 caractère</span>
-              <button class="btn-primary" id="btnSendClipboard">
+          <div class="pin-pairing-box">
+            <label for="directPinInput" style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); margin-bottom: 6px; display: block;">
+              Ou saisir le code PIN d'un autre appareil :
+            </label>
+            <div class="pin-direct-input-group">
+              <input type="text" id="directPinInput" class="pin-code-input" placeholder="Ex: 842 190" maxlength="7" autocomplete="off" />
+              <button class="btn-pin-connect" id="btnConnectPin">
                 <svg viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
                 </svg>
-                <span>Envoyer au téléphone</span>
+                <span>Associer</span>
               </button>
             </div>
-          </div>
-
-          <!-- Carte 2 : Textes reçus du téléphone -->
-          <div class="clipboard-card received-card">
-            <div class="clipboard-card-header">
-              <div class="card-title-group">
-                <div class="icon-circle green">
-                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                </div>
-                <div>
-                  <h3>Textes reçus du téléphone</h3>
-                  <span class="sub-text">Historique des données partagées en temps réel</span>
-                </div>
-              </div>
-              <button class="btn-clear-history" id="btnClearClipboardHistory">Effacer</button>
-            </div>
-
-            <div class="snippets-container" id="snippetsContainer">
-              <div class="clipboard-empty-state" id="clipboardEmptyState">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-                </svg>
-                <h4>Aucun texte partagé</h4>
-                <p>Les textes, liens et notes copiés ou envoyés apparaîtront ici.</p>
-              </div>
-            </div>
+            <div class="pin-feedback-msg" id="pinFeedbackMsg" style="display: none;"></div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
+  </div>
 
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- COLONNE 3 : PANNEAU DROIT (Téléphone, QR & Transfert)   -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <aside class="sidebar-right">
-      
-      <!-- CARTE 1 : Téléphone Connecté -->
-      <section class="panel-card device-card" id="connectedDeviceCard">
-        <div class="panel-header">
-          <div class="panel-title-with-badge">
-            <svg class="phone-icon-header" viewBox="0 0 20 20" fill="#1A73E8">
-              <path fill-rule="evenodd" d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zm3 14a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
-            </svg>
-            <h3 id="deviceStatusTitle">En attente de connexion</h3>
-            <span class="status-dot-waiting" id="deviceStatusDot"></span>
-          </div>
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 7. MODALE PARAMÈTRES DU SYSTÈME                             -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="settingsModal" style="display: none;">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <svg viewBox="0 0 20 20" fill="currentColor" style="width: 20px; height: 20px;">
+            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+          </svg>
+          <h4>Paramètres LanceDrop</h4>
         </div>
+        <button class="modal-close-btn" id="btnCloseSettingsModal">&times;</button>
+      </div>
 
-        <!-- Boîte Appareil Non Connecté -->
-        <div class="device-box empty-device-box" id="deviceBoxEmpty">
-          <div class="device-illustration waiting">
-            <svg viewBox="0 0 32 48" fill="none">
-              <rect x="2" y="2" width="28" height="44" rx="5" fill="#F8FAFC" stroke="#94A3B8" stroke-width="2"/>
-              <line x1="11" y1="6" x2="21" y2="6" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
-              <circle cx="16" cy="40" r="1.5" fill="#94A3B8"/>
-            </svg>
-          </div>
-          <div class="device-details">
-            <span class="device-name">Aucun mobile connecté</span>
-            <span class="device-os">Scannez le QR code ci-dessous</span>
-          </div>
-        </div>
-
-        <!-- Boîte Appareil Connecté (affiché dynamiquement) -->
-        <div class="device-box" id="deviceBoxConnected" style="display: none;">
-          <div class="device-illustration">
-            <svg viewBox="0 0 32 48" fill="none">
-              <rect x="2" y="2" width="28" height="44" rx="5" fill="#E8F0FE" stroke="#1A73E8" stroke-width="2"/>
-              <line x1="11" y1="6" x2="21" y2="6" stroke="#1A73E8" stroke-width="2" stroke-linecap="round"/>
-              <circle cx="16" cy="40" r="1.5" fill="#1A73E8"/>
-            </svg>
-          </div>
-          <div class="device-details">
-            <span class="device-name" id="connectedDeviceName">Smartphone</span>
-            <span class="device-os" id="connectedDeviceOs">Android</span>
-            <div class="device-badge">
-              <svg viewBox="0 0 20 20" fill="#16A34A"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-              <span>Connecté</span>
+      <div class="modal-body">
+        <div class="settings-card">
+          <h3 class="settings-card-title">Stockage & Téléchargements</h3>
+          <div class="settings-row">
+            <div class="settings-meta">
+              <label for="settingDownloadPath">Dossier de réception</label>
+              <span>Emplacement de sauvegarde des fichiers reçus.</span>
+            </div>
+            <div class="settings-input-group">
+              <input type="text" id="settingDownloadPath" readonly class="settings-text-input" value="C:\Downloads\LanceDrop">
+              <button class="btn-action-small" id="btnBrowseDownloadFolder">Parcourir...</button>
             </div>
           </div>
         </div>
 
-        <!-- Jauge d'Espace Stockage (affiché si appareil connecté) -->
-        <div class="storage-section" id="storageSection" style="display: none;">
-          <div class="storage-labels">
-            <span>Espace mobile disponible</span>
-            <span class="storage-value" id="deviceStorageValue">-- Go</span>
+        <div class="settings-card">
+          <h3 class="settings-card-title">Réseau & Protocole</h3>
+          <div class="settings-row">
+            <div class="settings-meta">
+              <label for="settingDeviceName">Nom visible de ce PC</label>
+              <span>Diffusé lors de la découverte mDNS & UDP.</span>
+            </div>
+            <input type="text" id="settingDeviceName" class="settings-text-input width-medium" value="Mon-PC-Windows">
           </div>
-          <div class="storage-bar">
-            <div class="storage-fill" id="deviceStorageFill" style="width: 0%;"></div>
+
+          <div class="settings-row">
+            <div class="settings-meta">
+              <label for="settingPort">Port TCP de transfert</label>
+              <span>Port local (défaut : 42420).</span>
+            </div>
+            <input type="number" id="settingPort" class="settings-text-input width-small" value="42420">
           </div>
         </div>
 
-        <!-- Boîte QR Code -->
-        <div class="qr-connection-box">
-          <div class="qr-code-wrapper">
-            <!-- QR code SVG stylisé haute fidélité -->
-            <svg viewBox="0 0 100 100" class="qr-svg">
-              <rect width="100" height="100" fill="white"/>
-              <!-- Coin haut gauche -->
-              <rect x="10" y="10" width="26" height="26" fill="black"/>
-              <rect x="15" y="15" width="16" height="16" fill="white"/>
-              <rect x="19" y="19" width="8" height="8" fill="black"/>
-              <!-- Coin haut droit -->
-              <rect x="64" y="10" width="26" height="26" fill="black"/>
-              <rect x="69" y="15" width="16" height="16" fill="white"/>
-              <rect x="73" y="19" width="8" height="8" fill="black"/>
-              <!-- Coin bas gauche -->
-              <rect x="10" y="64" width="26" height="26" fill="black"/>
-              <rect x="15" y="69" width="16" height="16" fill="white"/>
-              <rect x="19" y="73" width="8" height="8" fill="black"/>
-              <!-- Pixels motifs intérieurs -->
-              <rect x="42" y="12" width="6" height="6" fill="black"/>
-              <rect x="52" y="12" width="6" height="6" fill="black"/>
-              <rect x="42" y="24" width="6" height="6" fill="black"/>
-              <rect x="52" y="30" width="6" height="6" fill="black"/>
-              <rect x="12" y="44" width="6" height="6" fill="black"/>
-              <rect x="24" y="44" width="6" height="6" fill="black"/>
-              <rect x="36" y="44" width="6" height="6" fill="black"/>
-              <rect x="48" y="44" width="6" height="6" fill="black"/>
-              <rect x="60" y="44" width="6" height="6" fill="black"/>
-              <rect x="72" y="44" width="6" height="6" fill="black"/>
-              <rect x="84" y="44" width="6" height="6" fill="black"/>
-              <rect x="44" y="56" width="6" height="6" fill="black"/>
-              <rect x="60" y="56" width="6" height="6" fill="black"/>
-              <rect x="76" y="56" width="6" height="6" fill="black"/>
-              <rect x="44" y="68" width="6" height="6" fill="black"/>
-              <rect x="68" y="68" width="6" height="6" fill="black"/>
-              <rect x="82" y="68" width="6" height="6" fill="black"/>
-              <rect x="44" y="80" width="6" height="6" fill="black"/>
-              <rect x="56" y="80" width="6" height="6" fill="black"/>
-              <rect x="70" y="80" width="6" height="6" fill="black"/>
-              <!-- Centre Logo LanceDrop -->
-              <circle cx="50" cy="50" r="11" fill="#1A73E8"/>
-              <path d="M46 52L49 47L54 52" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+        <div class="settings-card">
+          <h3 class="settings-card-title">Préférences Générales</h3>
+          <div class="settings-row-toggle">
+            <div class="settings-meta">
+              <label>Démarrage automatique</label>
+              <span>Lancer au démarrage de Windows.</span>
+            </div>
+            <label class="switch-toggle">
+              <input type="checkbox" id="settingAutoStart">
+              <span class="switch-slider"></span>
+            </label>
           </div>
-          <div class="qr-text-info">
-            <p>Scannez ce QR code avec l'application mobile pour vous connecter</p>
-            <svg class="info-icon" viewBox="0 0 20 20" fill="#94A3B8">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-            </svg>
+
+          <div class="settings-row-toggle">
+            <div class="settings-meta">
+              <label>Notification sonore</label>
+              <span>Signal discret à la fin d'un transfert.</span>
+            </div>
+            <label class="switch-toggle">
+              <input type="checkbox" id="settingSoundNotification" checked>
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-meta">
+              <label for="settingTheme">Thème visuel</label>
+              <span>Basculez entre Sombre et Clair.</span>
+            </div>
+            <select id="settingTheme" class="settings-text-input width-medium">
+              <option value="cyber-slate">Cyber Slate (Sombre)</option>
+              <option value="light">Clair Moderne (Lumineux)</option>
+              <option value="auto">Automatique</option>
+            </select>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-meta">
+              <label for="settingDuplicateResolution">Résolution des doublons</label>
+              <span>Comportement par défaut si le fichier existe déjà.</span>
+            </div>
+            <select id="settingDuplicateResolution" class="settings-text-input width-medium">
+              <option value="PROMPT">Demander confirmation (Dialogue)</option>
+              <option value="RENAME">Renommer automatiquement</option>
+              <option value="OVERWRITE">Écraser</option>
+              <option value="SKIP">Ignorer</option>
+            </select>
           </div>
         </div>
 
-        <!-- Bouton Envoyer des Fichiers -->
-        <button class="btn-send-files" id="btnSendFiles">
-          <svg viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+        <div class="settings-toast" id="settingsSaveToast">✔ Paramètres enregistrés avec succès !</div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-primary-confirm" id="btnSaveSettings">Enregistrer les modifications</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 8. AUTRES MODALES ESSENTIELLES                              -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- Modal Associer un Appareil (Manuelle IP & Webcam) -->
+  <div class="modal-overlay" id="addDeviceModal" style="display: none;">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue-primary)" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
           </svg>
-          <span>Envoyer des fichiers</span>
+          <h4>Associer un nouvel appareil</h4>
+        </div>
+        <button class="modal-close-btn" id="btnCloseAddDeviceModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-tabs-header">
+          <button class="modal-tab-btn active" id="tabBtnManualIp">Connexion IP Directe</button>
+          <button class="modal-tab-btn" id="tabBtnWebcamQr">Scanner QR / Caméra</button>
+        </div>
+
+        <div id="tabContentManualIp">
+          <p class="modal-desc">Connectez un PC ou smartphone en spécifiant son adresse IP sur le réseau local :</p>
+          <div class="form-group">
+            <label>Nom de l'appareil (facultatif)</label>
+            <input type="text" id="manualDeviceName" placeholder="Ex: Smartphone-Bureau, Laptop" />
+          </div>
+          <div class="form-row-2">
+            <div class="form-group" style="flex: 2;">
+              <label>Adresse IP Locale</label>
+              <input type="text" id="manualDeviceIp" placeholder="Ex: 192.168.1.35" data-clarity-mask="true" />
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>Port</label>
+              <input type="number" id="manualDevicePort" value="42420" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Code PIN Session (facultatif)</label>
+            <input type="text" id="manualDevicePin" placeholder="Ex: 842 190" maxlength="7" data-clarity-mask="true" />
+          </div>
+        </div>
+
+        <div id="tabContentWebcamQr" style="display: none;" data-clarity-mask="true">
+          <p class="modal-desc">Scannez le QR Code affiché sur le téléphone avec votre webcam :</p>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 12px 0;">
+            <video id="webcamQrVideo" style="width: 100%; max-height: 220px; border-radius: 8px; background: #0F172A; display: none; object-fit: cover;"></video>
+            <canvas id="webcamQrCanvas" style="display: none;"></canvas>
+            <div id="webcamQrPlaceholder" style="width: 100%; height: 160px; border-radius: 8px; background: var(--bg-app); border: 2px dashed var(--border-card); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted);">
+              <span style="font-size: 32px;">📷</span>
+              <span style="font-size: 0.85rem;">Webcam prête pour le scan</span>
+            </div>
+            <div style="display: flex; gap: 10px; width: 100%;">
+              <button class="btn-outline" id="btnToggleWebcam" style="flex: 1;">Activer la Caméra</button>
+              <button class="btn-outline" id="btnUploadQrImage" style="flex: 1;">Importer Image QR</button>
+              <input type="file" id="inputQrFile" accept="image/*" style="display: none;">
+            </div>
+            <div id="qrScanStatusText" style="font-size: 0.8rem; color: var(--text-muted);">Visez le QR Code du mobile</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" id="btnCancelAddDevice">Annuler</button>
+        <button class="btn-modal-confirm" id="btnSaveAddDevice">Associer l'appareil</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Diagnostic Réseau -->
+  <div class="modal-overlay" id="networkDiagModal" style="display: none;">
+    <div class="modal-card" style="max-width: 500px;">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green-success)" stroke-width="2">
+            <path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/>
+          </svg>
+          <h4>Diagnostic Réseau & Pare-feu</h4>
+        </div>
+        <button class="modal-close-btn" id="btnDiagClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">État de la connectivité réseau et des interfaces pour les transferts :</p>
+        <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 10px;" id="networkDiagDetails"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-confirm" id="btnDiagRefresh">Actualiser le diagnostic</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Onboarding Bienvenue -->
+  <div class="modal-overlay" id="onboardingModal" style="display: none;">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--blue-primary)" stroke-width="2">
+            <rect width="20" height="16" x="2" y="4" rx="2"/>
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+          </svg>
+          <h4>Bienvenue sur LanceDrop</h4>
+        </div>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Démarrez le partage instantané haute vitesse sans configuration :</p>
+        <div style="border: 2px solid var(--blue-primary); background: var(--blue-subtle); border-radius: 12px; padding: 16px; margin-top: 14px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <strong style="color: var(--blue-primary); font-size: 0.95rem;">⚡ Mode Direct Local (Sans Compte)</strong>
+            <span style="font-size: 0.72rem; background: var(--blue-primary); color: var(--blue-on-primary); padding: 2px 6px; border-radius: 4px; font-weight: 700;">Recommandé</span>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Transferts immédiats et sécurisés en Wi-Fi local sans aucun compte ni Internet requis.</p>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label style="font-size: 0.78rem;">Nom visible de ce PC sur le réseau :</label>
+            <input type="text" id="onboardingDeviceName" placeholder="Ex: PC-Salon, Laptop-Pro" style="width: 100%;" />
+          </div>
+          <button class="btn-primary-confirm" id="btnStartLocalMode" style="width: 100%;">Démarrer en Mode Direct Local</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Résolution Conflits Doublons -->
+  <div class="conflict-modal-overlay" id="conflictModal" style="display: none;">
+    <div class="conflict-modal-card">
+      <div class="conflict-modal-header">
+        <span class="conflict-modal-icon">⚠️</span>
+        <h3>Fichier déjà existant</h3>
+      </div>
+      <div class="conflict-modal-body">
+        <p>Un fichier portant le même nom existe déjà dans votre dossier de réception :</p>
+        <div class="conflict-filename-box" id="conflictFileName">mon_fichier.pdf</div>
+        <p>Quelle action souhaitez-vous appliquer ?</p>
+      </div>
+      <div class="conflict-actions-grid">
+        <button class="btn-conflict-action primary" id="btnConflictRename">Conserver les deux</button>
+        <button class="btn-conflict-action danger" id="btnConflictOverwrite">Écraser</button>
+        <button class="btn-conflict-action" id="btnConflictSkip">Ignorer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Visionneuse In-App Multi-Formats -->
+  <div class="modal-overlay" id="fileViewerModal" style="display: none;">
+    <div class="file-viewer-card">
+      <div class="file-viewer-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span id="viewerFileIcon" style="font-size: 24px;">📄</span>
+          <div>
+            <h4 id="viewerFileName" style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 2px;">Fichier</h4>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="viewerFileBadge" class="badge-file-type badge-type-document">DOCUMENT</span>
+              <span id="viewerFileSize" style="font-size: 0.78rem; color: var(--text-muted);">0 o</span>
+            </div>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnViewerClose">&times;</button>
+      </div>
+      <div class="file-viewer-body" id="fileViewerBody">
+        <img id="viewerImage" class="viewer-image-preview" src="" alt="Aperçu" style="display: none;" />
+        <div id="viewerAudioBox" class="viewer-audio-box" style="display: none;">
+          <div style="font-size: 48px;">🎧</div>
+          <audio id="viewerAudioPlayer" controls style="width: 100%;"></audio>
+          <span id="viewerAudioMeta" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 8px;">Lecteur Audio Local LanceDrop</span>
+        </div>
+        <pre id="viewerTextBox" class="viewer-text-box" style="display: none;"></pre>
+        <div id="viewerGenericBox" class="viewer-generic-box" style="display: none;">
+          <div id="viewerGenericIcon" style="font-size: 64px;">📦</div>
+          <p id="viewerGenericDesc" style="font-size: 0.88rem; color: var(--text-muted); max-width: 400px;"></p>
+        </div>
+      </div>
+      <div class="file-viewer-footer">
+        <button class="btn-history-folder" id="btnViewerShowFolder" title="Afficher dans l'Explorateur Windows">
+          📁 Ouvrir le dossier
         </button>
-      </section>
+        <button class="btn-primary-confirm" id="btnViewerOpenApp" title="Lancer avec le programme Windows par défaut">
+          🚀 Ouvrir avec le système
+        </button>
+      </div>
+    </div>
+  </div>
 
-      <!-- CARTE 2 : Transfert en Cours & État Vide -->
-      <section class="panel-card transfer-card">
-        <div class="panel-header">
-          <div class="panel-title-with-badge">
-            <svg viewBox="0 0 20 20" fill="#1A73E8">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-            </svg>
-            <h3>Transfert en cours</h3>
-          </div>
-          <a href="#" class="link-all" id="linkViewAllTransfers">Tout voir</a>
+  <!-- Modal Confirmation Suppression -->
+  <div class="modal-backdrop" id="deleteModal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-icon-title">
+          <h3 class="modal-title">Supprimer ce fichier ?</h3>
         </div>
-
-        <!-- État vide des transferts -->
-        <div class="transfer-empty-state" id="transferEmptyState">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2">
-            <circle cx="12" cy="12" r="9"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-          <p>Aucun transfert en cours</p>
-        </div>
-
-        <div class="transfer-list" id="transferList" style="display: none;">
-          <!-- Item Actif Dynamique -->
-          <div class="transfer-item active-transfer" id="activeTransferItem">
-            <div class="item-thumb-video"></div>
-            <div class="item-details">
-              <div class="item-header">
-                <span class="item-name" id="activeTransferName">Fichier.dat</span>
-                <span class="item-percent" id="transferPercent">0%</span>
-              </div>
-              <div class="progress-track">
-                <div class="progress-bar-animated" id="transferProgressBar" style="width: 0%;"></div>
-              </div>
-              <div class="item-footer">
-                <span class="item-speed" id="transferSpeedText">0 Mo/s • 0 Mo</span>
-                <div class="item-actions">
-                  <button class="btn-ctrl" id="btnPauseTransfer" title="Pause">⏸</button>
-                  <button class="btn-ctrl" id="btnCancelTransfer" title="Annuler">✕</button>
-                </div>
-              </div>
-            </div>
+        <button class="modal-close-btn" id="modalCloseBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Êtes-vous sûr de vouloir supprimer définitivement ce fichier ? Cette action est irréversible.</p>
+        <div class="modal-file-preview">
+          <div class="modal-thumb"></div>
+          <div class="modal-file-info">
+            <span class="modal-file-name" id="modalFileName">Fichier.dat</span>
+            <span class="modal-file-meta" id="modalFileMeta">0 o</span>
           </div>
         </div>
-      </section>
-
-      <!-- CARTE 2.5 : Presse-Papier Partagé Rapide -->
-      <section class="panel-card clipboard-quick-card">
-        <div class="panel-header">
-          <div class="panel-title-with-badge">
-            <svg viewBox="0 0 20 20" fill="#1A73E8">
-              <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-              <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" />
-            </svg>
-            <h3>Presse-papier partagé</h3>
-          </div>
-          <button class="btn-quick-nav-clip" id="btnQuickOpenClipboard">Gérer</button>
-        </div>
-        <div class="clipboard-quick-body">
-          <div class="clipboard-quick-text" id="quickClipboardTextPreview" style="color: var(--text-muted); font-style: italic;">
-            Presse-papier partagé vide
-          </div>
-          <div class="clipboard-quick-footer">
-            <span class="clipboard-quick-meta" id="quickClipboardMeta">En attente de texte</span>
-            <button class="btn-copy-pill" id="btnQuickCopyPill" style="display: none;">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 2H9a3 3 0 01-3-2z" /></svg>
-              <span id="quickCopyPillText">Copier</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- CARTE 3 : Vos Fichiers Sont Protégés -->
-      <section class="panel-card security-card">
-        <div class="security-content">
-          <div class="security-shield-icon">
-            <svg viewBox="0 0 24 24" fill="#1A73E8">
-              <path d="M12 2L4 5V11.09C4 16.14 7.41 20.85 12 22C16.59 20.85 20 16.14 20 11.09V5L12 2Z"/>
-              <path d="M9.5 12.5L11 14L15 9.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="security-text">
-            <h4>Vos fichiers sont protégés</h4>
-            <p>Connexion sécurisée et transfert chiffré entre vos appareils.</p>
-          </div>
-        </div>
-      </section>
-
-    </aside>
-
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary-confirm" id="btnConfirmDelete">Supprimer</button>
+        <button class="btn-cancel" id="btnCancelDelete">Annuler</button>
+      </div>
+    </div>
   </div>
 
   <script src="renderer.js"></script>
