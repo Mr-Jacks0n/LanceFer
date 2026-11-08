@@ -53,12 +53,13 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      # Commandes SDK préinstallées sur les runners GitHub ; on accepte
-      # simplement les licences (sdkmanager 16 demande une confirmation
-      # interactive que l'action ne gère plus — cause du bug v0.2.0).
+      # Commandes SDK préinstallées sur les runners GitHub, mais hors
+      # PATH ; l'acceptation des licences doit être pipée (`yes |`)
+      # car le gestionnaire pose une question interactive.
       - name: Accept Android SDK licenses & ensure platform 34
         run: |
-          echo "y" | sdkmanager --licenses > /dev/null || yes | sdkmanager --licenses > /dev/null
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+          yes | sdkmanager --licenses > /dev/null
           yes | sdkmanager "platforms;android-34" "build-tools;34.0.0" > /dev/null
 
       # gradle/actions/setup-gradle installe Gradle directement — pas besoin du gradlew wrapper JAR
