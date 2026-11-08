@@ -1,0 +1,44 @@
+name: Bug report
+description: Signaler un problème de transfert, d'appairage, d'UI ou de CI
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Merci pour ce signalement ! **Ne collez jamais le contenu de vos fichiers de transfert, historiques locaux ou QR codes** (ils peuvent décrire vos appareils).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Que s'est-il passé ?
+      description: Comportement observé vs attendu. Les logs côté desktop (`--debug`) et Android sont bienvenus (sans données personnelles).
+      placeholder: Étapes de reproduction exactes…
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Plateforme concernée
+      options:
+        - Desktop (Electron / Windows)
+        - Desktop (Electron / Linux, macOS)
+        - Android
+        - Les deux / le transfert lui-même
+        - CI / build
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions (OS, app, Node/Android)
+      placeholder: ex. Windows 11 + LanceDrop 0.2.0 ↔ Android 14
+    validations:
+      required: true
+  - type: dropdown
+    id: scenario
+    attributes:
+      label: Scénario réseau
+      options:
+        - Wi-Fi domestique (routeur)
+        - Hotspot mobile sans internet
+        - Réseau d'entreprise / VPN
+    validations:
+      required: false

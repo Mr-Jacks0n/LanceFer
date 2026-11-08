@@ -1,0 +1,37 @@
+name: Feature request
+description: Proposer une amélioration du transfert, de l'UI ou du protocole
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Votre idée
+      description: |
+        Cadre du projet : **transfert local, sans cloud, sans compte externe**.
+        Une fonctionnalité qui introduit une dépendance SaaS dans le core =
+        hors périmètre (les idées de connecteurs externes vont dans une
+        issue « discussion »).
+      placeholder: ex. build AppImage, chiffrement AES-GCM couplé au QR…
+    validations:
+      required: true
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scénario utilisateur attendu
+      description: Décrivez le flux complet PC ↔ téléphone que votre idée rendrait possible.
+      placeholder: |
+        1. Je scanne le QR…
+        2. LanceDrop …
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Portée
+      options:
+        - label: Protocole / moteur de transfert (src/core, src/protocol)
+        - label: Streaming & explorateur distant
+        - label: Sécurité / appairage
+        - label: Découverte & self-exclusion
+        - label: UI Desktop (Electron)
+        - label: UI Android (Compose)
+        - label: CI / build / packaging
+        - label: Documentation
