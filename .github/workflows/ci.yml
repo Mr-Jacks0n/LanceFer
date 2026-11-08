@@ -1,0 +1,27 @@
+name: CI — Tests Node
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  tests:
+    name: Tests unitaires, intégration & benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Suite de tests (node --test)
+        run: node --test test/**/*.test.js
+
+      - name: Benchmark de débit (non bloquant, preuve de performance)
+        run: node scripts/benchmark.js || echo "benchmark non bloquant"
