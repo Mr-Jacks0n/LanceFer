@@ -13,8 +13,8 @@ sécurité, gatekeeper de release) qui conçoit, code, teste et audite de façon
 autonome ; chaque fonctionnalité publiée est passée par des tests unitaires,
 des tests adversariaux et un veto d'audit.
 
-[![CI — Tests Node](https://github.com/bindedouworker-hub/LanceFer/actions/workflows/ci.yml/badge.svg)](https://github.com/bindedouworker-hub/LanceFer/actions/workflows/ci.yml)
-[![Build & Release](https://github.com/bindedouworker-hub/LanceFer/actions/workflows/release.yml/badge.svg)](https://github.com/bindedouworker-hub/LanceFer/actions/workflows/release.yml)
+[![CI — Tests Node](https://github.com/Mr-Jacks0n/LanceFer/actions/workflows/ci.yml/badge.svg)](https://github.com/Mr-Jacks0n/LanceFer/actions/workflows/ci.yml)
+[![Build & Release](https://github.com/Mr-Jacks0n/LanceFer/actions/workflows/release.yml/badge.svg)](https://github.com/Mr-Jacks0n/LanceFer/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 > 🇬🇧 An English version of this README is available: **[README.md](README.md)**
@@ -62,13 +62,13 @@ fichier (backpressure) : un fichier de 50 Go transite avec une empreinte
 
 ## 👥 Voir et télécharger
 
-- **Dernière release officielle** : [Releases](https://github.com/bindedouworker-hub/LanceFer/releases) —
+- **Dernière release officielle** : [Releases](https://github.com/Mr-Jacks0n/LanceFer/releases) —
   exécutable Windows (`.exe`) + APK Android (`.apk`), construits et publiés
   automatiquement par la CI à chaque tag `v*`.
 - Depuis les sources :
 
 ```bash
-git clone https://github.com/bindedouworker-hub/LanceFer.git
+git clone https://github.com/Mr-Jacks0n/LanceFer.git
 cd LanceFer
 npm install           # desktop : Electron 31
 npm run desktop       # LanceDrop Desktop (Windows/Linux/macOS)

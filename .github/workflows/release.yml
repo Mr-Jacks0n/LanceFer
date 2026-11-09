@@ -132,7 +132,7 @@ jobs:
 
             ### 📱 QR Code Android
             Scannez pour installer directement sur mobile :
-            ![QR Code](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/bindedouworker-hub/LanceFer/releases/latest/download/LanceDrop.apk)
+            ![QR Code](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/Mr-Jacks0n/LanceFer/releases/latest/download/LanceDrop.apk)
 
             ---
             *Construit automatiquement par LanceFer Software Factory 🏭*

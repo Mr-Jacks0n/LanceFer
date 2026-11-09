@@ -7,7 +7,7 @@ reprise réseau. Toutes les contributions sont bienvenues.
 ## Pour commencer
 
 ```bash
-git clone https://github.com/bindedouworker-hub/LanceFer.git
+git clone https://github.com/Mr-Jacks0n/LanceFer.git
 cd LanceFer
 npm install
 npm test              # 145 tests Node — doivent passer au vert
