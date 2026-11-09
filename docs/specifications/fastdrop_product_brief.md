@@ -1,5 +1,5 @@
-# FASTDROP — PRODUCT BRIEF & CAHIER DES CHARGES MVP
-## LanceFer Pilot Project — Document de Spécification Produit
+# FASTDROP · PRODUCT BRIEF & CAHIER DES CHARGES MVP
+## LanceFer Pilot Project · Document de Spécification Produit
 **Auteur :** `lancefer_product_owner`  
 **Statut :** Validé pour Conception  
 **Version :** 1.0.0 (Phase 1)

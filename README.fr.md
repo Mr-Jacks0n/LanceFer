@@ -1,19 +1,19 @@
 <p align="center">
-  <img src="docs/banner.png" alt="LanceFer — FastDrop, transfert Android ↔ PC sans cloud" width="100%">
+  <img src="docs/banner.png" alt="LanceFer · FastDrop, transfert Android ↔ PC sans cloud" width="100%">
 </p>
 
 # LanceFer · FastDrop 🚀
 
 **Transfert direct de fichiers entre Android et PC (Windows / Linux / macOS) sur
-réseau local — sans cloud, sans internet, sans compromis.**
+réseau local · sans cloud, sans internet, sans compromis.**
 
-Développé via le **Programme LanceFer V4 — Universal Autonomous Software
+Développé via le **Programme LanceFer V4 · Universal Autonomous Software
 Factory** : une chaîne multi-agents (architecte, ingénieurs, QA, auditeur
 sécurité, gatekeeper de release) qui conçoit, code, teste et audite de façon
 autonome ; chaque fonctionnalité publiée est passée par des tests unitaires,
 des tests adversariaux et un veto d'audit.
 
-[![CI — Tests Node](https://github.com/Mr-Jacks0n/LanceFer/actions/workflows/ci.yml/badge.svg)](https://github.com/Mr-Jacks0n/LanceFer/actions/workflows/ci.yml)
+[![CI · Tests Node](https://github.com/Mr-Jacks0n/LanceFer/actions/workflows/ci.yml/badge.svg)](https://github.com/Mr-Jacks0n/LanceFer/actions/workflows/ci.yml)
 [![Build & Release](https://github.com/Mr-Jacks0n/LanceFer/actions/workflows/release.yml/badge.svg)](https://github.com/Mr-Jacks0n/LanceFer/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
@@ -35,23 +35,23 @@ fichier (backpressure) : un fichier de 50 Go transite avec une empreinte
 
 ## ✨ Fonctionnalités
 
-- **Transfert direct appareil-à-appareil** — chunks de 1 Mo streamés sur
+- **Transfert direct appareil-à-appareil** · chunks de 1 Mo streamés sur
   TCP du réseau local, protocole binaire [FDSP v1](docs/architecture/fastdrop_protocol_v1.md).
-- **Reprise après interruption** — le *Resume Engine* relance le transfert
+- **Reprise après interruption** · le *Resume Engine* relance le transfert
   à partir du dernier chunk validé, pas depuis zéro.
-- **Intégrité cryptographique** — SHA-256 de chaque chunk puis du fichier
+- **Intégrité cryptographique** · SHA-256 de chaque chunk puis du fichier
   complet à la réception.
-- **Appairage sécurisé** — code PIN mutuel / QR signé (HMAC) + *trust
+- **Appairage sécurisé** · code PIN mutuel / QR signé (HMAC) + *trust
   store* persistant ; la découverte réseau est immunisée
   contre le *[Path Traversal](docs/architecture/security_model.md)*.
-- **Auto-exclusion « Mon appareil »** — ni le PC ni le téléphone ne
+- **Auto-exclusion « Mon appareil »** · ni le PC ni le téléphone ne
   s'affichent comme pair : filtrage multi-interfaces (Wi-Fi, Ethernet,
   hotspot, VPN, WSL/Hyper-V, loopback) des deux côtés.
-- **Presse-papiers partagé** — texte copié d'un côté, collable de l'autre,
+- **Presse-papiers partagé** · texte copié d'un côté, collable de l'autre,
   de façon instantanée.
-- **Explorateur distant** — parcourir et *streamer* les fichiers du PC
+- **Explorateur distant** · parcourir et *streamer* les fichiers du PC
   depuis le téléphone (photos, vidéos, *range requests* HTTP, aperçus).
-- **Télémétrie intégrée** — débits, périodes, événements de résumé.
+- **Télémétrie intégrée** · débits, périodes, événements de résumé.
 - **Deux apps** : bureau **Electron** (3 colonnes, Fluent Light) et
   mobile **Jetpack Compose** (10 écrans), UI conforme **WCAG AAA** en
   clair et sombre.
@@ -62,7 +62,7 @@ fichier (backpressure) : un fichier de 50 Go transite avec une empreinte
 
 ## 👥 Voir et télécharger
 
-- **Dernière release officielle** : [Releases](https://github.com/Mr-Jacks0n/LanceFer/releases) —
+- **Dernière release officielle** : [Releases](https://github.com/Mr-Jacks0n/LanceFer/releases) ·
   exécutable Windows (`.exe`) + APK Android (`.apk`), construits et publiés
   automatiquement par la CI à chaque tag `v*`.
 - Depuis les sources :
@@ -81,7 +81,7 @@ sur un appareil/émulateur sur le même réseau local.
 
 | Suite | Compte | Statut |
 |---|---|---|
-| Tests Node (`node --test`) : 14 fichiers — protocole, chunks, resume E2E,
+| Tests Node (`node --test`) : 14 fichiers · protocole, chunks, resume E2E,
   sécurité adversariale, parité Windows, contraste WCAG, télémétrie… | **145 ✔** | CI sur chaque push |
 | Tests Android JVM (JUnit) : discovery, FDSP, clôture, self-exclusion | **59 ✔** | job release gradle |
 
@@ -99,7 +99,7 @@ officielle sur tag `v*`.
 
 ```text
 ├── src/                        # Moteur universel FastDrop (Node/Electron)
-│   ├── protocol/               # FDSP v1 — framing binaire & types de messages
+│   ├── protocol/               # FDSP v1 · framing binaire & types de messages
 │   ├── core/                   # Chunks, backpressure, resume, intégrité, crypto-stream
 │   │                           # + historique local des transferts
 │   ├── streaming/              # Serveur HTTP de streaming (range, sandbox, aperçus)
@@ -134,10 +134,10 @@ Le détail calibré est dans [ARCHITECTURE.md](ARCHITECTURE.md),
 
 ## 🤝 Contribuer
 
-Voir [CONTRIBUTING.md](CONTRIBUTING.md) — templates issues/PR fournis.
+Voir [CONTRIBUTING.md](CONTRIBUTING.md) · templates issues/PR fournis.
 Règle d'or : **aucune donnée personnelle transférée par vos tests n'a
 sa place dans un commit.**
 
 ## ⚖️ Licence
 
-[MIT](LICENSE) — © 2026 Mr Jackson.
+[MIT](LICENSE) · © 2026 Mr Jackson.

@@ -1,6 +1,6 @@
 <!--
 Merci pour votre PR ! Avant de soumettre :
-- [ ] `npm test` passe (145 tests) — et JUnit Android si le change est côté mobile
+- [ ] `npm test` passe (145 tests) · et JUnit Android si le change est côté mobile
 - [ ] J'ai testé le desktop ET le mobile sur le même réseau si le transfert est touché
 - [ ] Aucun artefact local (dist/, historiques, QR, données personnelles) n'est commité
 -->

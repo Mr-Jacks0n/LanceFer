@@ -10,7 +10,7 @@ reprise réseau. Toutes les contributions sont bienvenues.
 git clone https://github.com/Mr-Jacks0n/LanceFer.git
 cd LanceFer
 npm install
-npm test              # 145 tests Node — doivent passer au vert
+npm test              # 145 tests Node · doivent passer au vert
 npm run desktop       # UI Electron locale
 ```
 

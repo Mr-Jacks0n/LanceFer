@@ -1,5 +1,5 @@
 # SPÉCIFICATION DU PROTOCOLE FASTDROP v1 (FDSP v1)
-## FastDrop Streaming Protocol — Version 1.0.0
+## FastDrop Streaming Protocol · Version 1.0.0
 **Auteur :** `lancefer_system_architect`  
 **Statut :** Spécification Formelle  
 **Port Réseau par Défaut :** TCP `42420` (Contrôle & Transfert) / UDP `42424` (Découverte Fallback)

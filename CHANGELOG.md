@@ -1,8 +1,8 @@
-# Changelog — LanceFer / LanceDrop
+# Changelog · LanceFer / LanceDrop
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
-## [0.2.0] — 2026-11
+## [0.2.0] · 2026-11
 
 ### Added
 - **Explorateur distant** : parcourir l'appareil distant et *streamer*
@@ -30,10 +30,10 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ### Removed
 - Artefacts de l'usine autonome retirés du dépôt public
-  (`.lancefer/`, `.agents/`, caches de build) — conservés en local
+  (`.lancefer/`, `.agents/`, caches de build) · conservés en local
   comme mémoire de travail.
 
-## [0.1.0] — 2026-09-07
+## [0.1.0] · 2026-09-07
 
 ### Added
 - Première release officielle : **LanceDrop Desktop** (Electron,
